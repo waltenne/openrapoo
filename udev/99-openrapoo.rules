@@ -1,0 +1,21 @@
+# Rapoo devices — allow read/write access for members of the 'input' group
+# without requiring root privileges.
+#
+# To install:
+#   sudo cp 99-openrapoo.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules
+#   sudo udevadm trigger
+#   sudo usermod -aG input $USER
+#   (log out and back in)
+#
+# Vendor ID 0x24AE = Shenzhen Rapoo Technology Co., Ltd.
+
+# hidraw — allows openrapoo-diag to read HID descriptors and feature reports
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="24ae", TAG+="uaccess", GROUP="input", MODE="0660"
+
+# input event nodes — allows openrapoo-diag and daemon to read evdev events
+SUBSYSTEM=="input", ATTRS{idVendor}=="24ae", TAG+="uaccess", GROUP="input", MODE="0660"
+
+# uinput — needed by the remapping daemon (Phase 3) to inject virtual events
+# Only grant access if the user is in the 'input' group
+KERNEL=="uinput", GROUP="input", MODE="0660"

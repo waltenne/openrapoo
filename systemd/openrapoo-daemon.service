@@ -1,0 +1,29 @@
+[Unit]
+Description=OpenRapoo Mouse Remapping Daemon
+Documentation=https://github.com/openrapoo/openrapoo
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+# NOTE: This service is a stub — Phase 3 not yet implemented.
+# The daemon will be enabled in Phase 3 (Software Remapping).
+Type=simple
+ExecStart=%h/.local/bin/openrapoo-daemon
+Restart=on-failure
+RestartSec=5s
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.config/openrapoo %h/.local/share/openrapoo
+
+# Allow access to input devices
+SupplementaryGroups=input
+DeviceAllow=/dev/input/event* rw
+DeviceAllow=/dev/hidraw* rw
+DeviceAllow=/dev/uinput rw
+
+[Install]
+WantedBy=graphical-session.target

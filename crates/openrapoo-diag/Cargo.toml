@@ -1,0 +1,31 @@
+[package]
+name = "openrapoo-diag"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Diagnostic CLI tool for OpenRapoo — device detection, event capture, HID inspection"
+
+[[bin]]
+name = "openrapoo-diag"
+path = "src/main.rs"
+
+[dependencies]
+openrapoo-core = { path = "../openrapoo-core" }
+
+thiserror.workspace = true
+anyhow.workspace = true
+serde = { workspace = true }
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+clap.workspace = true
+tokio.workspace = true
+evdev.workspace = true
+hidapi.workspace = true
+nix.workspace = true
+libc.workspace = true
+chrono.workspace = true
+dirs.workspace = true
+
+[dev-dependencies]

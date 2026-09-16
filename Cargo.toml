@@ -1,0 +1,53 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/openrapoo-core",
+    "crates/openrapoo-diag",
+    "crates/openrapoo-daemon",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["OpenRapoo Contributors"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/openrapoo/openrapoo"
+homepage = "https://github.com/openrapoo/openrapoo"
+description = "Linux configuration tool for Rapoo MT760 Pro mouse"
+keywords = ["rapoo", "mouse", "linux", "hid", "evdev"]
+categories = ["hardware-support", "command-line-utilities"]
+rust-version = "1.75"
+
+[workspace.dependencies]
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Logging / tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# CLI
+clap = { version = "4", features = ["derive", "color", "env"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Linux input subsystem
+evdev = "0.12"
+
+# HID communication
+hidapi = { version = "2", features = ["linux-static-hidraw"] }
+
+# System
+nix = { version = "0.29", features = ["ioctl", "fs", "poll"] }
+libc = "0.2"
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+dirs = "5"
