@@ -1,43 +1,84 @@
-//! openrapoo-daemon — Background remapping service.
-//!
-//! ## Status: STUB (Phase 1)
-//!
-//! This binary is a placeholder for Phase 3 (Software Remapping).
-//! The actual implementation will:
-//!   - Open evdev device with exclusive grab (EVIOCGRAB)
-//!   - Read events from the physical mouse
-//!   - Apply user-configured remapping rules
-//!   - Inject remapped events via /dev/uinput
-//!   - Listen for profile change requests via D-Bus
-//!   - Switch profiles based on active application
-//!
-//! ## Architecture (planned)
-//!
-//! ```
-//! [physical mouse] → evdev grab → [remapping engine] → uinput inject → [OS]
-//!                                          ↑
-//!                              [D-Bus interface] ← [GUI / CLI]
-//! ```
+//! `openrapoo-daemon` — Background remapping service for Rapoo MT760 Pro.
+
+mod remapper;
+mod virtual_device;
 
 use anyhow::Result;
-use tracing::info;
+use clap::Parser;
+use remapper::{Remapper, RemapperConfig};
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use tracing::{info, Level};
+use tracing_subscriber::EnvFilter;
+
+#[derive(Parser)]
+#[command(
+    name = "openrapoo-daemon",
+    about = "OpenRapoo Daemon — Background event remapping service",
+    version,
+    author
+)]
+struct Cli {
+    /// Path to evdev device node (e.g. /dev/input/event22). If omitted, auto-detects Rapoo devices.
+    #[arg(short, long)]
+    device: Option<PathBuf>,
+
+    /// Path to configuration file (defaults to ~/.config/openrapoo/profiles.json)
+    #[arg(short, long)]
+    config: Option<PathBuf>,
+
+    /// Run in dry-run mode (logs actions without capturing device or creating uinput virtual node)
+    #[arg(long)]
+    dry_run: bool,
+
+    /// Verbosity level (-v, -vv, -vvv)
+    #[arg(short, long, action = clap::ArgAction::Count)]
+    verbose: u8,
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let cli = Cli::parse();
+
+    let level = match cli.verbose {
+        0 => Level::INFO,
+        1 => Level::DEBUG,
+        _ => Level::TRACE,
+    };
+
     tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(level.into())
+                .from_env_lossy(),
+        )
         .with_target(false)
         .init();
 
     info!("openrapoo-daemon v{}", env!("CARGO_PKG_VERSION"));
-    info!("Status: stub — Phase 3 not yet implemented");
-    info!("The remapping daemon will be implemented in Phase 3.");
-    info!("For now, use `openrapoo-diag` for hardware investigation.");
 
-    eprintln!();
-    eprintln!("openrapoo-daemon: Phase 3 (Software Remapping) not yet implemented.");
-    eprintln!("See ROADMAP.md for the development plan.");
-    eprintln!();
+    let shutdown_signal = Arc::new(AtomicBool::new(false));
+    let shutdown_flag = shutdown_signal.clone();
 
+    // Signal handler for SIGINT (Ctrl+C) and SIGTERM
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to listen for Ctrl+C");
+        info!("Received shutdown signal. Stopping daemon...");
+        shutdown_flag.store(true, Ordering::Relaxed);
+    });
+
+    let config = RemapperConfig {
+        device_path: cli.device,
+        config_path: cli.config,
+        dry_run: cli.dry_run,
+    };
+
+    let mut remapper = Remapper::new(config, shutdown_signal)?;
+    remapper.run().await?;
+
+    info!("Daemon shut down cleanly.");
     Ok(())
 }
-

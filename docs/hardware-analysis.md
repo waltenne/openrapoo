@@ -88,40 +88,75 @@ Quando conectado via cabo USB-C:
 
 ---
 
-## 3. Mapeamento de Botões
+## 3. Mapeamento Completo de Entradas (CONFIRMADO)
 
-### Botões em `/dev/input/event22` — confirmados com hardware real
+> ✅ Dados confirmados via `/proc/bus/input/devices` + `identify-buttons` em 2026-09-16.
 
-> ✅ Testado em 2026-09-16 com `openrapoo-diag identify-buttons --device /dev/input/event22`
+### `/dev/input/event22` — Mouse Principal (input0)
 
-| Botão físico | Evento evdev | Código | Status |
+**Tipos suportados:** `EV_SYN`, `EV_KEY`, `EV_REL`, `EV_MSC`
+
+#### Botões (EV_KEY) — 5 botões confirmados
+
+| Código | Nome evdev | Botão físico | Remapeável via software |
 |---|---|---|---|
-| Clique esquerdo | `BTN_LEFT` | `0x110` | ✅ **CONFIRMADO** |
-| Clique direito | `BTN_RIGHT` | `0x111` | ✅ **CONFIRMADO** |
-| Clique do meio (roda) | `BTN_MIDDLE` | `0x112` | ✅ **CONFIRMADO** |
-| Botão lateral traseiro | `BTN_SIDE` | `0x113` | ✅ **CONFIRMADO** |
-| Botão lateral dianteiro | `BTN_EXTRA` | `0x114` | ✅ **CONFIRMADO** |
-| Roda de rolagem vertical | `REL_WHEEL` | `EV_REL 0x08` | ✅ Padrão HID (não testado via identify) |
-| **Roda lateral (horizontal)** | `REL_HWHEEL`? | `EV_REL 0x06`? | ⚠️ **Não respondeu** — ver nota abaixo |
+| `0x110` | `BTN_LEFT` | Clique esquerdo | ✅ |
+| `0x111` | `BTN_RIGHT` | Clique direito | ✅ |
+| `0x112` | `BTN_MIDDLE` | Clique do meio / roda | ✅ |
+| `0x113` | `BTN_SIDE` | Botão lateral traseiro (Voltar) | ✅ |
+| `0x114` | `BTN_EXTRA` | Botão lateral dianteiro (Avançar) | ✅ |
 
-> **Nota sobre o scroll lateral:** O `identify-buttons` captura apenas eventos `EV_KEY` (botões). O scroll lateral gera eventos `EV_REL` (eixo relativo), que são invisíveis para esse modo. Use `capture-events` e gire a roda lateral para verificar se gera `REL_HWHEEL` ou se é silencioso.
+#### Eixos relativos (EV_REL) — 4 eixos confirmados
 
-### Interface `/dev/input/event23` (Keyboard) — **ainda não testada**
+| Código | Nome evdev | Função | Status |
+|---|---|---|---|
+| `REL_X (0)` | `REL_X` | Movimento horizontal | ✅ Passthrough |
+| `REL_Y (1)` | `REL_Y` | Movimento vertical | ✅ Passthrough |
+| `REL_WHEEL (8)` | `REL_WHEEL` | Scroll vertical | ✅ Remapeável |
+| `REL_HWHEEL (6)` | `REL_HWHEEL` | **Scroll lateral** | ✅ Suportado (declarado) |
+| `REL_WHEEL_HI_RES (12)` | `REL_WHEEL_HI_RES` | Scroll vertical alta resolução | ✅ Suportado |
+| `REL_HWHEEL_HI_RES (11)` | `REL_HWHEEL_HI_RES` | **Scroll lateral alta resolução** | ✅ Suportado |
 
-Esta interface pode conter os botões:
-- DPI (ajuste de sensibilidade)
-- Troca de dispositivo
-- Botões de mídia (se houver)
-- Botão extra customizável
+> **Nota sobre scroll lateral:** O bitmask confirma suporte a `REL_HWHEEL` e `REL_HWHEEL_HI_RES` em `event22`. O hardware declara a capacidade, mas os eventos só chegam ao host quando a roda física é girada. Se não respondeu no teste, pode ser que a roda precise de mais força física, ou os eventos chegam somente via `REL_HWHEEL_HI_RES` (high-res).
 
-> **Ação necessária:** Execute `identify-buttons --device /dev/input/event23` e pressione cada botão especial do mouse.
+---
 
-### Botões que provavelmente NÃO geram eventos
+### `/dev/input/event23` — Interface de Teclado (input1)
 
-| Botão | Motivo |
-|---|---|
-| Troca de dispositivo | Processado pelo firmware/receptor; não há razão para enviar evento ao host |
-| DPI | Aguardando teste em `event23` |
+**Tipos suportados:** `EV_SYN`, `EV_KEY`, `EV_REL`, `EV_ABS`, `EV_MSC`, `EV_LED`, `EV_REP`
+
+> Esta é a interface mais rica. Com **212 teclas declaradas**, é onde botões especiais do mouse geram eventos de teclado.
+
+**Eixos REL suportados:** `REL_HWHEEL (6)`, `REL_WHEEL_HI_RES (12)`
+
+#### Teclas relevantes declaradas (subset confirmado)
+
+| Código | Nome evdev | Uso típico |
+|---|---|---|
+| `0x071` | `KEY_MUTE` | Silenciar |
+| `0x072` | `KEY_VOLUMEDOWN` | Volume − |
+| `0x073` | `KEY_VOLUMEUP` | Volume + |
+| `0x074` | `KEY_POWER` | Energia |
+| `0x0E2` | `KEY_MUTE` (media) | Silenciar (HID Consumer) |
+| `0x0E7` | `KEY_MEDIA` | Abrir player de mídia |
+| `0x0E8` | `KEY_BRIGHTNESSDOWN` | Brilho − |
+| `0x0E9` | `KEY_BRIGHTNESSUP` | Brilho + |
+| `0x0CE` | `KEY_EJECTCD` | Ejetar |
+| `0x03B`–`0x058` | `KEY_F1`–`KEY_F12` | Teclas de função |
+| `0x01D` | `KEY_LEFTCTRL` | Ctrl |
+| `0x02A` | `KEY_LEFTSHIFT` | Shift |
+| `0x038` | `KEY_LEFTALT` | Alt |
+
+> **Conclusão:** O botão DPI e o botão de troca de dispositivo provavelmente geram teclas nessa interface. Execute `identify-buttons --device /dev/input/event23` e pressione cada botão especial.
+
+---
+
+### `/dev/input/event24` — Mouse Secundário (input1)
+
+**Tipos suportados:** `EV_SYN`, `EV_ABS`  
+**Uso:** Provavelmente para gestos ou touchpad emulado. Sem botões convencionais.
+
+---
 
 ---
 
