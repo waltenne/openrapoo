@@ -91,3 +91,4 @@
 ---
 
 > **Nota:** As fases 1–7 não requerem o protocolo HID proprietário. O remapeamento por software (Fases 2–6) funciona independentemente.
+

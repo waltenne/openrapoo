@@ -103,3 +103,4 @@ Os dados coletados contêm apenas:
 - Informações do kernel e sistema operacional
 
 **Não contêm:** nomes de usuário, endereços de email, conteúdo de arquivos, histórico de navegação ou qualquer dado pessoal.
+

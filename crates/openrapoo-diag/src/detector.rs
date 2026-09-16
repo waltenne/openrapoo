@@ -91,3 +91,4 @@ fn print_json(devices: &[RapooDevice]) -> Result<()> {
     println!("{json}");
     Ok(())
 }
+

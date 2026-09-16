@@ -41,3 +41,4 @@ pub enum OpenRapooError {
     #[error("Feature not yet supported: {0}")]
     NotSupported(String),
 }
+

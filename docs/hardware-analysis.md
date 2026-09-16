@@ -90,27 +90,38 @@ Quando conectado via cabo USB-C:
 
 ## 3. Mapeamento de Botões
 
-### Botões que provavelmente geram eventos evdev
+### Botões em `/dev/input/event22` — confirmados com hardware real
 
-| Botão físico | Evento evdev esperado | Código | Status |
+> ✅ Testado em 2026-09-16 com `openrapoo-diag identify-buttons --device /dev/input/event22`
+
+| Botão físico | Evento evdev | Código | Status |
 |---|---|---|---|
-| Clique esquerdo | `BTN_LEFT` | `0x110` | ✅ Padrão HID |
-| Clique direito | `BTN_RIGHT` | `0x111` | ✅ Padrão HID |
-| Clique do meio (roda) | `BTN_MIDDLE` | `0x112` | ✅ Padrão HID |
-| Botão lateral traseiro | `BTN_SIDE` | `0x113` | ✅ Provável |
-| Botão lateral dianteiro | `BTN_EXTRA` | `0x114` | ✅ Provável |
-| Roda de rolagem vertical | `REL_WHEEL` | `0x08` | ✅ Padrão HID |
-| Roda lateral (horizontal) | `REL_HWHEEL` | `0x06` | ⚠️ Incerto |
-| Botão DPI | desconhecido | ? | ⚠️ Pode ser `BTN_EXTRA+1` ou mudo |
-| Botão troca de dispositivo | nenhum | — | ❌ Provável mudo |
-| Botão extra customizável | desconhecido | ? | ⚠️ Incerto |
+| Clique esquerdo | `BTN_LEFT` | `0x110` | ✅ **CONFIRMADO** |
+| Clique direito | `BTN_RIGHT` | `0x111` | ✅ **CONFIRMADO** |
+| Clique do meio (roda) | `BTN_MIDDLE` | `0x112` | ✅ **CONFIRMADO** |
+| Botão lateral traseiro | `BTN_SIDE` | `0x113` | ✅ **CONFIRMADO** |
+| Botão lateral dianteiro | `BTN_EXTRA` | `0x114` | ✅ **CONFIRMADO** |
+| Roda de rolagem vertical | `REL_WHEEL` | `EV_REL 0x08` | ✅ Padrão HID (não testado via identify) |
+| **Roda lateral (horizontal)** | `REL_HWHEEL`? | `EV_REL 0x06`? | ⚠️ **Não respondeu** — ver nota abaixo |
+
+> **Nota sobre o scroll lateral:** O `identify-buttons` captura apenas eventos `EV_KEY` (botões). O scroll lateral gera eventos `EV_REL` (eixo relativo), que são invisíveis para esse modo. Use `capture-events` e gire a roda lateral para verificar se gera `REL_HWHEEL` ou se é silencioso.
+
+### Interface `/dev/input/event23` (Keyboard) — **ainda não testada**
+
+Esta interface pode conter os botões:
+- DPI (ajuste de sensibilidade)
+- Troca de dispositivo
+- Botões de mídia (se houver)
+- Botão extra customizável
+
+> **Ação necessária:** Execute `identify-buttons --device /dev/input/event23` e pressione cada botão especial do mouse.
 
 ### Botões que provavelmente NÃO geram eventos
 
 | Botão | Motivo |
 |---|---|
 | Troca de dispositivo | Processado pelo firmware/receptor; não há razão para enviar evento ao host |
-| DPI (possível) | O mouse pode alternar DPI internamente sem notificar o host |
+| DPI | Aguardando teste em `event23` |
 
 ---
 

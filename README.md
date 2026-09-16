@@ -160,3 +160,4 @@ GPL-3.0-or-later. Veja [`LICENSE`](LICENSE).
 
 Este projeto **não é afiliado, endossado ou patrocinado** pela Rapoo Technology Co., Ltd.
 O nome "Rapoo" e "MT760 Pro" são marcas registradas de seus respectivos proprietários.
+

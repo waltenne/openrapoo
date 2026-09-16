@@ -112,3 +112,4 @@ Testado em:
 - [hidviz](https://github.com/ondrejbudai/hidviz) — visualizador de HID reports
 - [python-hid](https://github.com/apmorton/pyhidapi) — prototipar em Python antes de Rust
 - [hid-tools](https://gitlab.freedesktop.org/libevdev/hid-tools) — análise de HID descriptors
+

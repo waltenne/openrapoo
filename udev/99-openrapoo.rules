@@ -19,3 +19,4 @@ SUBSYSTEM=="input", ATTRS{idVendor}=="24ae", TAG+="uaccess", GROUP="input", MODE
 # uinput — needed by the remapping daemon (Phase 3) to inject virtual events
 # Only grant access if the user is in the 'input' group
 KERNEL=="uinput", GROUP="input", MODE="0660"
+

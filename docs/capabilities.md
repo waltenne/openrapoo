@@ -95,3 +95,4 @@ cargo build --release
 ```
 
 Abra uma issue no GitHub e anexe o relatório gerado.
+

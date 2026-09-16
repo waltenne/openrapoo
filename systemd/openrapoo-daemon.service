@@ -27,3 +27,4 @@ DeviceAllow=/dev/uinput rw
 
 [Install]
 WantedBy=graphical-session.target
+

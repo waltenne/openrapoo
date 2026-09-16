@@ -69,3 +69,4 @@ docs/                  # Documentação técnica
 udev/                  # Regras udev
 tests/                 # Testes de integração
 ```
+

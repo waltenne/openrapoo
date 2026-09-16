@@ -8,3 +8,4 @@ Cargo.lock
 *.log
 *.json.bak
 ~/.local/share/openrapoo/
+
