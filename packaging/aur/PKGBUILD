@@ -1,0 +1,50 @@
+# Maintainer: OpenRapoo Community <https://github.com/openrapoo/openrapoo>
+pkgname=openrapoo-git
+_pkgname=openrapoo
+pkgver=0.1.0.r0.g668804f
+pkgrel=1
+pkgdesc="Linux configuration tool for Rapoo MT760 Pro mouse"
+arch=('x86_64' 'aarch64')
+url="https://github.com/openrapoo/openrapoo"
+license=('GPL-3.0-or-later')
+depends=('libevdev' 'systemd-libs' 'hicolor-icon-theme')
+makedepends=('cargo' 'git' 'pkg-config')
+optdepends=(
+  'gtk4: for GTK4 GUI interface'
+  'libadwaita: for Libadwaita GNOME integration'
+)
+provides=('openrapoo' 'openrapoo-gui' 'openrapoo-daemon' 'openrapoo-diag')
+conflicts=('openrapoo')
+source=("git+https://github.com/openrapoo/openrapoo.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$_pkgname"
+  git describe --long --tags 2>/dev/null | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g' ||
+  printf "0.1.0.r%s.g%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd "$_pkgname"
+  cargo build --release --workspace
+}
+
+check() {
+  cd "$_pkgname"
+  cargo test --workspace
+}
+
+package() {
+  cd "$_pkgname"
+  install -Dm755 "target/release/openrapoo-gui" "$pkgdir/usr/bin/openrapoo-gui"
+  install -Dm755 "target/release/openrapoo-daemon" "$pkgdir/usr/bin/openrapoo-daemon"
+  install -Dm755 "target/release/openrapoo-diag" "$pkgdir/usr/bin/openrapoo-diag"
+
+  install -Dm644 "udev/99-openrapoo.rules" "$pkgdir/usr/lib/udev/rules.d/99-openrapoo.rules"
+  install -Dm644 "systemd/openrapoo-daemon.service" "$pkgdir/usr/lib/systemd/user/openrapoo-daemon.service"
+  install -Dm644 "autostart/openrapoo-autostart.desktop" "$pkgdir/etc/xdg/autostart/openrapoo-autostart.desktop"
+  install -Dm644 "packaging/io.github.openrapoo.OpenRapoo.desktop" "$pkgdir/usr/share/applications/io.github.openrapoo.OpenRapoo.desktop"
+  install -Dm644 "packaging/io.github.openrapoo.OpenRapoo.metainfo.xml" "$pkgdir/usr/share/metainfo/io.github.openrapoo.OpenRapoo.metainfo.xml"
+  install -Dm644 "packaging/icons/io.github.openrapoo.OpenRapoo.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/io.github.openrapoo.OpenRapoo.svg"
+  install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

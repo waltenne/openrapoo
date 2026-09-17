@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3584e4"/>
+      <stop offset="100%" stop-color="#1c71d8"/>
+    </linearGradient>
+    <linearGradient id="body-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3d3d3d"/>
+      <stop offset="100%" stop-color="#242424"/>
+    </linearGradient>
+    <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#62a0ea"/>
+      <stop offset="100%" stop-color="#3584e4"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background Card -->
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#bg-grad)" filter="url(#shadow)"/>
+
+  <!-- Mouse Silhouette Body -->
+  <path d="M 64 24 C 44 24 36 40 36 68 C 36 96 46 104 64 104 C 82 104 92 96 92 68 C 92 40 84 24 64 24 Z" fill="url(#body-grad)" filter="url(#shadow)"/>
+
+  <!-- Center Split Line -->
+  <line x1="64" y1="26" x2="64" y2="52" stroke="#1a1a1a" stroke-width="2"/>
+
+  <!-- Scroll Wheel -->
+  <rect x="60" y="34" width="8" height="18" rx="4" fill="url(#accent-grad)"/>
+
+  <!-- Side Wheel / Accent Ring -->
+  <rect x="34" y="54" width="6" height="14" rx="3" fill="#77767b"/>
+
+  <!-- Side Buttons Indicator -->
+  <path d="M 33 72 L 36 72 L 36 78 L 33 78 Z" fill="url(#accent-grad)"/>
+  <path d="M 33 80 L 36 80 L 36 86 L 33 86 Z" fill="url(#accent-grad)"/>
+
+  <!-- Gear / Config Overlay -->
+  <circle cx="84" cy="84" r="16" fill="#f6f5f4" filter="url(#shadow)"/>
+  <circle cx="84" cy="84" r="6" fill="#3584e4"/>
+  <path d="M 84 64 L 84 68 M 84 100 L 84 104 M 64 84 L 68 84 M 100 84 L 104 84" stroke="#77767b" stroke-width="3" stroke-linecap="round"/>
+</svg>

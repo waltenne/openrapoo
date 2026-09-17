@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=OpenRapoo
+GenericName=Mouse Configurator
+GenericName[pt_BR]=Configurador de Mouse
+Comment=Configure extra buttons and features for Rapoo MT760 Pro mouse
+Comment[pt_BR]=Configure botões adicionais e recursos do mouse Rapoo MT760 Pro
+Exec=openrapoo-gui
+Icon=io.github.openrapoo.OpenRapoo
+Terminal=false
+Categories=Utility;Settings;HardwareSettings;
+Keywords=mouse;rapoo;mt760;remapping;evdev;button;config;
+X-GNOME-UsesNotifications=true
+StartupNotify=true

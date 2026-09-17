@@ -66,3 +66,4 @@ echo "   To start the service now, run:                   "
 echo "     systemctl --user start openrapoo-daemon         "
 echo "======================================================"
 echo
+

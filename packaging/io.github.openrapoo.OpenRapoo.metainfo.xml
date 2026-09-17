@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.openrapoo.OpenRapoo</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>OpenRapoo</name>
+  <summary>Configure extra buttons and features for Rapoo MT760 Pro mouse</summary>
+  <summary xml:lang="pt_BR">Configure botões adicionais e recursos do mouse Rapoo MT760 Pro</summary>
+
+  <description>
+    <p>
+      OpenRapoo is a native open-source Linux utility designed to configure, remap, and manage extra buttons and profiles for the Rapoo MT760 Pro mouse.
+    </p>
+    <p xml:lang="pt_BR">
+      O OpenRapoo é um aplicativo Linux open source nativo projetado para configurar, remapear e gerenciar botões adicionais e perfis para o mouse Rapoo MT760 Pro.
+    </p>
+    <ul>
+      <li>Auto-detection of Rapoo MT760 Pro over 2.4 GHz, NearLink, Bluetooth, and USB</li>
+      <li>Remap extra side buttons and horizontal scroll wheel via evdev and uinput</li>
+      <li>Custom action categories: key combinations, media controls, terminal, macros, and commands</li>
+      <li>Profile management with application-specific switching</li>
+      <li>Hardware diagnostic tools and technical report generation</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.openrapoo.OpenRapoo.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main application window displaying detected Rapoo MT760 Pro mouse</caption>
+      <caption xml:lang="pt_BR">Janela principal do aplicativo exibindo o mouse Rapoo MT760 Pro detectado</caption>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://github.com/openrapoo/openrapoo</url>
+  <url type="bugtracker">https://github.com/openrapoo/openrapoo/issues</url>
+
+  <developer_name>OpenRapoo Community</developer_name>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="0.1.0" date="2026-09-16">
+      <description>
+        <p>Initial release with diagnostic tools, evdev remapping daemon, and GTK4 GUI interface.</p>
+      </description>
+    </release>
+  </releases>
+</component>
