@@ -2,7 +2,10 @@
 
 mod app_window;
 mod i18n;
+#[cfg(feature = "gtk")]
+mod theme;
 mod views;
+mod widgets;
 
 use app_window::AppWindowController;
 use clap::Parser;

@@ -4,4 +4,7 @@ pub mod profiles_view;
 pub mod diag_view;
 pub mod permissions_view;
 pub mod logs_view;
-
+pub mod buttons_tab;
+pub mod pointer_tab;
+pub mod device_tab;
+pub mod diag_tab;
