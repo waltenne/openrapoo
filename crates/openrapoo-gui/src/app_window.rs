@@ -1,4 +1,4 @@
-//! Main Window Controller and GTK4 Layout Builder for OpenRapoo GUI.
+//! Main Window Controller and GTK4 Layout Builder for OpenRapoo GUI — OpenLogi Minimalist Redesign.
 
 #![allow(dead_code)]
 
@@ -43,168 +43,129 @@ impl Default for AppWindowController {
 pub fn build_gtk_ui(app: &gtk4::Application) {
     use gtk4::prelude::*;
     use gtk4::*;
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
     use crate::theme::load_custom_css;
-    use crate::widgets::mouse_view::{get_button_action_label, RAPOO_MT760_BUTTONS};
+    use crate::views::buttons_tab::gtk_ui::build_buttons_tab_ui;
+    use crate::widgets::action_dialog::build_action_dialog_popover;
 
     load_custom_css();
 
     let controller = AppWindowController::default();
+    let profile_store = Rc::new(RefCell::new(controller.profiles_state.store.clone()));
 
     let window = ApplicationWindow::builder()
         .application(app)
-        .title("OpenRapoo — Rapoo MT760 Pro Configurator")
-        .default_width(960)
-        .default_height(680)
+        .title("OpenRapoo — Rapoo MT760 Pro")
+        .default_width(1040)
+        .default_height(720)
         .build();
 
-    // --- 1. TOP HEADER BAR ---
+    // --- 1. OPENLOGI MINIMAL HEADERBAR ---
     let header_bar = HeaderBar::new();
+    header_bar.set_show_title_buttons(true);
 
-    let back_btn = Button::from_icon_name("go-previous-symbolic");
-    back_btn.set_tooltip_text(Some("Voltar para lista de dispositivos"));
-    header_bar.pack_start(&back_btn);
+    // Left: "< Back" Button + Device Name
+    let left_header = Box::new(Orientation::Horizontal, 12);
+    left_header.set_valign(Align::Center);
 
-    let title_box = Box::new(Orientation::Vertical, 0);
-    title_box.set_valign(Align::Center);
+    let back_btn = Button::with_label("‹ Back");
+    back_btn.add_css_class("back-button");
 
-    let title_label = Label::new(Some("Rapoo MT760 Pro"));
-    title_label.add_css_class("openrapoo-title");
+    let device_title = Label::new(Some("Rapoo MT760 Pro"));
+    device_title.add_css_class("device-title");
 
-    let conn_text = controller
-        .home_state
-        .detected_device
-        .as_ref()
-        .map(|d| format!("Conectado ({})", d.connection))
-        .unwrap_or_else(|| "Desconectado".to_string());
-    let subtitle_label = Label::new(Some(&conn_text));
-    subtitle_label.add_css_class("action-subtitle");
+    left_header.append(&back_btn);
+    left_header.append(&device_title);
+    header_bar.pack_start(&left_header);
 
-    title_box.append(&title_label);
-    title_box.append(&subtitle_label);
-    header_bar.set_title_widget(Some(&title_box));
+    // Center: Floating Pill Tab Switcher (Buttons | Pointer | Device | Diagnostics)
+    let pill_switcher = Box::new(Orientation::Horizontal, 4);
+    pill_switcher.add_css_class("pill-switcher");
 
-    let conn_badge = Label::new(Some("2.4 GHz / NearLink"));
-    conn_badge.add_css_class("connection-badge");
-    header_bar.pack_end(&conn_badge);
+    let tab_buttons_btn = Button::with_label("Buttons");
+    tab_buttons_btn.add_css_class("pill-tab");
+    tab_buttons_btn.add_css_class("active");
 
-    let manage_dev_btn = Button::with_label("Dispositivos");
-    header_bar.pack_end(&manage_dev_btn);
+    let tab_pointer_btn = Button::with_label("Pointer");
+    tab_pointer_btn.add_css_class("pill-tab");
 
-    // --- 2. STACK & STACK SWITCHER (TABS) ---
+    let tab_device_btn = Button::with_label("Device");
+    tab_device_btn.add_css_class("pill-tab");
+
+    let tab_diag_btn = Button::with_label("Diagnostics");
+    tab_diag_btn.add_css_class("pill-tab");
+
+    pill_switcher.append(&tab_buttons_btn);
+    pill_switcher.append(&tab_pointer_btn);
+    pill_switcher.append(&tab_device_btn);
+    pill_switcher.append(&tab_diag_btn);
+    header_bar.set_title_widget(Some(&pill_switcher));
+
+    // Right: Status Pill ("• Connected") + "+" Add Profile Button
+    let right_header = Box::new(Orientation::Horizontal, 8);
+    right_header.set_valign(Align::Center);
+
+    let status_pill = Box::new(Orientation::Horizontal, 6);
+    status_pill.add_css_class("status-pill");
+
+    let status_dot = Box::new(Orientation::Horizontal, 0);
+    status_dot.add_css_class("status-dot");
+
+    let is_connected = controller.home_state.detected_device.is_some();
+    if !is_connected {
+        status_dot.add_css_class("disconnected");
+    }
+
+    let status_label = Label::new(Some(if is_connected { "Connected" } else { "Disconnected" }));
+    status_label.add_css_class("status-text");
+
+    status_pill.append(&status_dot);
+    status_pill.append(&status_label);
+
+    let add_prof_btn = Button::with_label("+");
+    add_prof_btn.add_css_class("back-button");
+
+    right_header.append(&status_pill);
+    right_header.append(&add_prof_btn);
+    header_bar.pack_end(&right_header);
+
+    // --- 2. STACK FOR TAB PAGES ---
     let stack = Stack::new();
-    stack.set_transition_type(StackTransitionType::SlideLeftRight);
+    stack.set_transition_type(StackTransitionType::Crossfade);
 
-    let stack_switcher = StackSwitcher::new();
-    stack_switcher.set_stack(Some(&stack));
-    stack_switcher.set_halign(Align::Center);
+    // Tab 1: Buttons Page
+    let current_profile = Rc::new(RefCell::new(profile_store.borrow().active_profile().clone()));
+    
+    let window_ref = window.clone();
+    let profile_for_cb = current_profile.clone();
+    
+    let buttons_page = build_buttons_tab_ui(current_profile, move |btn_info| {
+        let popover = build_action_dialog_popover(
+            btn_info.hex_code,
+            btn_info.name_pt,
+            &profile_for_cb.borrow(),
+            |_new_action| {
+                // Action saved
+            },
+        );
+        popover.set_parent(&window_ref);
+        popover.popup();
+    });
 
-    // --- TAB 1: BOTÕES ---
-    let tab_buttons = Box::new(Orientation::Vertical, 12);
-    tab_buttons.set_margin_start(16);
-    tab_buttons.set_margin_end(16);
-    tab_buttons.set_margin_top(16);
-    tab_buttons.set_margin_bottom(16);
+    stack.add_named(&buttons_page, Some("buttons"));
 
-    // Profile Bar
-    let profile_bar = Box::new(Orientation::Horizontal, 12);
-    let active_prof = controller.profiles_state.store.active_profile();
-    let prof_label = Label::new(Some(&format!("Perfil Ativo: {}", active_prof.name)));
-    prof_label.add_css_class("openrapoo-title");
+    // Tab 2: Pointer Page
+    let pointer_page = Box::new(Orientation::Vertical, 16);
+    pointer_page.add_css_class("main-canvas");
+    pointer_page.set_margin_start(32);
+    pointer_page.set_margin_end(32);
+    pointer_page.set_margin_top(32);
 
-    let new_prof_btn = Button::with_label("+ Novo Perfil");
-    profile_bar.append(&prof_label);
-    profile_bar.append(&new_prof_btn);
-    tab_buttons.append(&profile_bar);
-
-    // Mouse Canvas + Side Cards Layout
-    let mouse_layout = Box::new(Orientation::Horizontal, 20);
-    mouse_layout.set_homogeneous(true);
-
-    // Left Side Cards (Buttons 1..3)
-    let left_cards = Box::new(Orientation::Vertical, 12);
-    for btn_info in &RAPOO_MT760_BUTTONS[0..3] {
-        let card = Frame::new(Some(&format!("[{}] {}", btn_info.id, btn_info.name_pt)));
-        card.add_css_class("action-card");
-        let card_box = Box::new(Orientation::Vertical, 4);
-
-        let action_text = get_button_action_label(active_prof, btn_info.hex_code);
-        let lbl_action = Label::new(Some(&action_text));
-        lbl_action.add_css_class("action-title");
-        lbl_action.set_halign(Align::Start);
-
-        let lbl_desc = Label::new(Some(btn_info.description));
-        lbl_desc.add_css_class("action-subtitle");
-        lbl_desc.set_halign(Align::Start);
-
-        let edit_btn = Button::with_label("Editar Ação");
-        edit_btn.set_halign(Align::End);
-
-        card_box.append(&lbl_action);
-        card_box.append(&lbl_desc);
-        card_box.append(&edit_btn);
-        card.set_child(Some(&card_box));
-        left_cards.append(&card);
-    }
-
-    // Center Illustration Box
-    let center_mouse = Frame::new(Some("Rapoo MT760 Pro — Visão Geral"));
-    let center_box = Box::new(Orientation::Vertical, 8);
-    center_box.set_margin_start(16);
-    center_box.set_margin_end(16);
-    center_box.set_margin_top(16);
-    center_box.set_margin_bottom(16);
-
-    let mouse_img_label = Label::new(Some("🖱️\n\nRapoo MT760 Pro\n\n[1] Clique Esquerdo   [2] Clique Direito\n[3] Scroll / Meio     [4] Lateral Traseiro\n[5] Lateral Dianteiro [6] Scroll Lateral"));
-    mouse_img_label.set_justify(Justification::Center);
-    center_box.append(&mouse_img_label);
-    center_mouse.set_child(Some(&center_box));
-
-    // Right Side Cards (Buttons 4..6)
-    let right_cards = Box::new(Orientation::Vertical, 12);
-    for btn_info in &RAPOO_MT760_BUTTONS[3..6] {
-        let card = Frame::new(Some(&format!("[{}] {}", btn_info.id, btn_info.name_pt)));
-        card.add_css_class("action-card");
-        let card_box = Box::new(Orientation::Vertical, 4);
-
-        let action_text = get_button_action_label(active_prof, btn_info.hex_code);
-        let lbl_action = Label::new(Some(&action_text));
-        lbl_action.add_css_class("action-title");
-        lbl_action.set_halign(Align::Start);
-
-        let lbl_desc = Label::new(Some(btn_info.description));
-        lbl_desc.add_css_class("action-subtitle");
-        lbl_desc.set_halign(Align::Start);
-
-        let edit_btn = Button::with_label("Editar Ação");
-        edit_btn.set_halign(Align::End);
-
-        card_box.append(&lbl_action);
-        card_box.append(&lbl_desc);
-        card_box.append(&edit_btn);
-        card.set_child(Some(&card_box));
-        right_cards.append(&card);
-    }
-
-    mouse_layout.append(&left_cards);
-    mouse_layout.append(&center_mouse);
-    mouse_layout.append(&right_cards);
-    tab_buttons.append(&mouse_layout);
-
-    stack.add_titled(&tab_buttons, Some("buttons"), "Botões");
-
-    // --- TAB 2: PONTEIRO ---
-    let tab_pointer = Box::new(Orientation::Vertical, 16);
-    tab_pointer.set_margin_start(20);
-    tab_pointer.set_margin_end(20);
-    tab_pointer.set_margin_top(20);
-    tab_pointer.set_margin_bottom(20);
-
-    let ptr_frame = Frame::new(Some("Configurações do Ponteiro e Scroll"));
-    let ptr_box = Box::new(Orientation::Vertical, 12);
-    ptr_box.set_margin_start(16);
-    ptr_box.set_margin_end(16);
-    ptr_box.set_margin_top(16);
-    ptr_box.set_margin_bottom(16);
+    let ptr_title = Label::new(Some("Configurações do Ponteiro e Scroll"));
+    ptr_title.add_css_class("device-title");
+    ptr_title.set_halign(Align::Start);
 
     let speed_label = Label::new(Some("Velocidade do Ponteiro:"));
     speed_label.set_halign(Align::Start);
@@ -216,50 +177,38 @@ pub fn build_gtk_ui(app: &gtk4::Application) {
 
     let natural_check = CheckButton::with_label("Rolagem Natural (Inverter direção do scroll)");
 
-    ptr_box.append(&speed_label);
-    ptr_box.append(&speed_scale);
-    ptr_box.append(&accel_check);
-    ptr_box.append(&natural_check);
-    ptr_frame.set_child(Some(&ptr_box));
-    tab_pointer.append(&ptr_frame);
-
-    // Unsupported Hardware Features Banner (DPI & Polling Rate)
-    let unsupported_banner = Frame::new(Some("Recursos de Hardware (DPI / Polling Rate)"));
-    let unsup_box = Box::new(Orientation::Vertical, 8);
-    unsup_box.add_css_class("unsupported-banner");
-    unsup_box.set_margin_start(12);
-    unsup_box.set_margin_end(12);
-    unsup_box.set_margin_top(12);
-    unsup_box.set_margin_bottom(12);
-
+    let unsup_banner = Box::new(Orientation::Vertical, 6);
+    unsup_banner.add_css_class("unsupported-banner");
     let unsup_title = Label::new(Some("⚠️ Ajuste de DPI e Polling Rate via Software"));
-    unsup_title.add_css_class("action-title");
+    unsup_title.add_css_class("card-label-title");
     unsup_title.set_halign(Align::Start);
 
     let unsup_desc = Label::new(Some(controller.pointer_tab.dpi_unsupported_reason_pt));
     unsup_desc.set_wrap(true);
     unsup_desc.set_halign(Align::Start);
 
-    unsup_box.append(&unsup_title);
-    unsup_box.append(&unsup_desc);
-    unsupported_banner.set_child(Some(&unsup_box));
-    tab_pointer.append(&unsupported_banner);
+    unsup_banner.append(&unsup_title);
+    unsup_banner.append(&unsup_desc);
 
-    stack.add_titled(&tab_pointer, Some("pointer"), "Ponteiro");
+    pointer_page.append(&ptr_title);
+    pointer_page.append(&speed_label);
+    pointer_page.append(&speed_scale);
+    pointer_page.append(&accel_check);
+    pointer_page.append(&natural_check);
+    pointer_page.append(&unsup_banner);
 
-    // --- TAB 3: DISPOSITIVO ---
-    let tab_device = Box::new(Orientation::Vertical, 16);
-    tab_device.set_margin_start(20);
-    tab_device.set_margin_end(20);
-    tab_device.set_margin_top(20);
-    tab_device.set_margin_bottom(20);
+    stack.add_named(&pointer_page, Some("pointer"));
 
-    let dev_info_frame = Frame::new(Some("Informações Técnicas do Hardware"));
-    let dev_info_box = Box::new(Orientation::Vertical, 10);
-    dev_info_box.set_margin_start(16);
-    dev_info_box.set_margin_end(16);
-    dev_info_box.set_margin_top(16);
-    dev_info_box.set_margin_bottom(16);
+    // Tab 3: Device Page
+    let device_page = Box::new(Orientation::Vertical, 12);
+    device_page.add_css_class("main-canvas");
+    device_page.set_margin_start(32);
+    device_page.set_margin_end(32);
+    device_page.set_margin_top(32);
+
+    let dev_title = Label::new(Some("Informações do Dispositivo & Permissões"));
+    dev_title.add_css_class("device-title");
+    dev_title.set_halign(Align::Start);
 
     let lbl_mfg = Label::new(Some(&format!("Fabricante: {}", controller.device_tab.manufacturer)));
     lbl_mfg.set_halign(Align::Start);
@@ -273,79 +222,130 @@ pub fn build_gtk_ui(app: &gtk4::Application) {
     } else {
         "Regras udev: Ausentes ✗ (Execute: sudo openrapoo-gui --install-udev)"
     };
-    let lbl_udev_st = Label::new(Some(udev_msg));
-    lbl_udev_st.set_halign(Align::Start);
+    let lbl_udev = Label::new(Some(udev_msg));
+    lbl_udev.set_halign(Align::Start);
 
     let group_msg = format!("Grupo input: {}", controller.permissions_status.input_group_state.display_message_pt());
-    let lbl_grp_st = Label::new(Some(&group_msg));
-    lbl_grp_st.set_halign(Align::Start);
+    let lbl_grp = Label::new(Some(&group_msg));
+    lbl_grp.set_halign(Align::Start);
 
-    let refresh_btn = Button::with_label("Atualizar Informações de Dispositivo");
-    refresh_btn.set_halign(Align::Start);
+    device_page.append(&dev_title);
+    device_page.append(&lbl_mfg);
+    device_page.append(&lbl_mdl);
+    device_page.append(&lbl_vid_pid);
+    device_page.append(&lbl_udev);
+    device_page.append(&lbl_grp);
 
-    dev_info_box.append(&lbl_mfg);
-    dev_info_box.append(&lbl_mdl);
-    dev_info_box.append(&lbl_vid_pid);
-    dev_info_box.append(&lbl_udev_st);
-    dev_info_box.append(&lbl_grp_st);
-    dev_info_box.append(&refresh_btn);
-    dev_info_frame.set_child(Some(&dev_info_box));
-    tab_device.append(&dev_info_frame);
+    stack.add_named(&device_page, Some("device"));
 
-    stack.add_titled(&tab_device, Some("device"), "Dispositivo");
+    // Tab 4: Diagnostics Page
+    let diag_page = Box::new(Orientation::Vertical, 12);
+    diag_page.add_css_class("main-canvas");
+    diag_page.set_margin_start(32);
+    diag_page.set_margin_end(32);
+    diag_page.set_margin_top(32);
 
-    // --- TAB 4: DIAGNÓSTICO ---
-    let tab_diag = Box::new(Orientation::Vertical, 16);
-    tab_diag.set_margin_start(20);
-    tab_diag.set_margin_end(20);
-    tab_diag.set_margin_top(20);
-    tab_diag.set_margin_bottom(20);
+    let diag_title = Label::new(Some("Diagnóstico e Eventos evdev"));
+    diag_title.add_css_class("device-title");
+    diag_title.set_halign(Align::Start);
 
-    let diag_frame = Frame::new(Some("Diagnóstico e Testador de Eventos"));
-    let diag_box = Box::new(Orientation::Vertical, 12);
-    diag_box.set_margin_start(16);
-    diag_box.set_margin_end(16);
-    diag_box.set_margin_top(16);
-    diag_box.set_margin_bottom(16);
-
-    let diag_desc = Label::new(Some("O OpenRapoo intercepta eventos evdev para remapeamento. Use o botão abaixo para exportar um relatório técnico de diagnósticos sem expor dados pessoais."));
+    let diag_desc = Label::new(Some("O OpenRapoo intercepta e reemite eventos através do nó /dev/uinput. Utilize o relatório para suporte técnico."));
     diag_desc.set_wrap(true);
     diag_desc.set_halign(Align::Start);
 
-    let btn_report = Button::with_label("Gerar Relatório Técnico em Markdown");
-    btn_report.set_halign(Align::Start);
+    let btn_diag_report = Button::with_label("Gerar Relatório de Diagnóstico");
+    btn_diag_report.set_halign(Align::Start);
 
-    diag_box.append(&diag_desc);
-    diag_box.append(&btn_report);
-    diag_frame.set_child(Some(&diag_box));
-    tab_diag.append(&diag_frame);
+    diag_page.append(&diag_title);
+    diag_page.append(&diag_desc);
+    diag_page.append(&btn_diag_report);
 
-    stack.add_titled(&tab_diag, Some("diag"), "Diagnóstico");
+    stack.add_named(&diag_page, Some("diag"));
 
-    // --- 3. BOTTOM STATUS BAR ---
-    let status_bar = Box::new(Orientation::Horizontal, 16);
-    status_bar.add_css_class("status-bar");
+    // --- TAB SWITCHER LOGIC ---
+    let stack_ref = stack.clone();
 
-    let status_permissions = Label::new(Some(&format!(
-        "Permissões: udev {} | input {}",
-        if controller.permissions_status.udev_rule_exists { "✓" } else { "✗" },
-        if controller.permissions_status.input_group_state.is_active() { "✓" } else { "⚠️" }
+    let p1 = stack_ref.clone();
+    let b1 = tab_buttons_btn.clone();
+    let b2 = tab_pointer_btn.clone();
+    let b3 = tab_device_btn.clone();
+    let b4 = tab_diag_btn.clone();
+
+    tab_buttons_btn.connect_clicked(move |_| {
+        p1.set_visible_child_name("buttons");
+        b1.add_css_class("active");
+        b2.remove_css_class("active");
+        b3.remove_css_class("active");
+        b4.remove_css_class("active");
+    });
+
+    let p2 = stack_ref.clone();
+    let b1 = tab_buttons_btn.clone();
+    let b2 = tab_pointer_btn.clone();
+    let b3 = tab_device_btn.clone();
+    let b4 = tab_diag_btn.clone();
+
+    tab_pointer_btn.connect_clicked(move |_| {
+        p2.set_visible_child_name("pointer");
+        b2.add_css_class("active");
+        b1.remove_css_class("active");
+        b3.remove_css_class("active");
+        b4.remove_css_class("active");
+    });
+
+    let p3 = stack_ref.clone();
+    let b1 = tab_buttons_btn.clone();
+    let b2 = tab_pointer_btn.clone();
+    let b3 = tab_device_btn.clone();
+    let b4 = tab_diag_btn.clone();
+
+    tab_device_btn.connect_clicked(move |_| {
+        p3.set_visible_child_name("device");
+        b3.add_css_class("active");
+        b1.remove_css_class("active");
+        b2.remove_css_class("active");
+        b4.remove_css_class("active");
+    });
+
+    let p4 = stack_ref;
+    let b1 = tab_buttons_btn;
+    let b2 = tab_pointer_btn;
+    let b3 = tab_device_btn;
+    let b4 = tab_diag_btn.clone();
+
+    tab_diag_btn.connect_clicked(move |_| {
+        p4.set_visible_child_name("diag");
+        b4.add_css_class("active");
+        b1.remove_css_class("active");
+        b2.remove_css_class("active");
+        b3.remove_css_class("active");
+    });
+
+    // --- 3. BOTTOM FOOTER ---
+    let status_footer = Box::new(Orientation::Horizontal, 16);
+    status_footer.add_css_class("status-footer");
+
+    let udev_ok = controller.permissions_status.udev_rule_exists;
+    let input_ok = controller.permissions_status.input_group_state.is_active();
+    let foot_status = Label::new(Some(&format!(
+        "• Regras udev {} | Grupo input {}",
+        if udev_ok { "instaladas ✓" } else { "ausentes ✗" },
+        if input_ok { "ativo ✓" } else { "pendente ⚠️" }
     )));
-    status_permissions.set_halign(Align::Start);
-    status_permissions.set_hexpand(true);
+    foot_status.set_halign(Align::Start);
+    foot_status.set_hexpand(true);
 
-    let status_version = Label::new(Some(&format!("OpenRapoo v{}", env!("CARGO_PKG_VERSION"))));
-    status_version.set_halign(Align::End);
+    let foot_ver = Label::new(Some(&format!("v{}", env!("CARGO_PKG_VERSION"))));
+    foot_ver.set_halign(Align::End);
 
-    status_bar.append(&status_permissions);
-    status_bar.append(&status_version);
+    status_footer.append(&foot_status);
+    status_footer.append(&foot_ver);
 
-    // Assemble Main Window
+    // Assemble Window
     let window_box = Box::new(Orientation::Vertical, 0);
     window_box.append(&header_bar);
-    window_box.append(&stack_switcher);
     window_box.append(&stack);
-    window_box.append(&status_bar);
+    window_box.append(&status_footer);
 
     window.set_child(Some(&window_box));
     window.present();

@@ -44,3 +44,4 @@ impl DeviceTabInfo {
         self.input_group_state = check_input_group_status();
     }
 }
+

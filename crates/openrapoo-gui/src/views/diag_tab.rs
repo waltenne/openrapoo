@@ -52,3 +52,4 @@ impl DiagTabState {
         out
     }
 }
+

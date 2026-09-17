@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 700" width="100%" height="100%">
+  <defs>
+    <!-- Background Glow Gradient -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Metallic Body Gradient -->
+    <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d2f36"/>
+      <stop offset="40%" stop-color="#1e2026"/>
+      <stop offset="80%" stop-color="#141519"/>
+      <stop offset="100%" stop-color="#0d0e11"/>
+    </linearGradient>
+
+    <!-- Top Plate Metallic Finish -->
+    <linearGradient id="plateGradient" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#484b54"/>
+      <stop offset="30%" stop-color="#31343d"/>
+      <stop offset="70%" stop-color="#21232a"/>
+      <stop offset="100%" stop-color="#18191e"/>
+    </linearGradient>
+
+    <!-- Metallic Wheel Gradient -->
+    <linearGradient id="metalWheel" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#606470"/>
+      <stop offset="25%" stop-color="#b0b5c4"/>
+      <stop offset="50%" stop-color="#e2e6f0"/>
+      <stop offset="75%" stop-color="#808594"/>
+      <stop offset="100%" stop-color="#40434d"/>
+    </linearGradient>
+
+    <!-- Side Thumb Rest Gradient -->
+    <linearGradient id="thumbRest" x1="0%" y1="30%" x2="100%" y2="70%">
+      <stop offset="0%" stop-color="#18191e"/>
+      <stop offset="50%" stop-color="#252730"/>
+      <stop offset="100%" stop-color="#121317"/>
+    </linearGradient>
+
+    <!-- Soft Drop Shadow -->
+    <filter id="mouseShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="16"/>
+      <feOffset dx="0" dy="12" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.45"/>
+      </feComponentTransfer>
+      <feMerge> 
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Ambient Glow -->
+  <ellipse cx="250" cy="350" rx="220" ry="300" fill="url(#bgGlow)" />
+
+  <g filter="url(#mouseShadow)">
+    <!-- Main Mouse Silhouette (Rapoo MT760 Pro Ergonomic Shape) -->
+    <!-- Left Thumb Rest Flare -->
+    <path d="M 120 400 
+             C 80 440, 70 500, 110 570 
+             C 140 610, 190 630, 260 630 
+             C 360 630, 420 570, 420 460 
+             C 420 320, 390 180, 320 90 
+             C 280 40, 220 40, 180 90 
+             C 130 160, 130 280, 120 400 Z" 
+          fill="url(#bodyGradient)" 
+          stroke="#3d414d" 
+          stroke-width="1.5" />
+
+    <!-- Left Thumb Rest Surface with Grip Texture Lines -->
+    <path d="M 120 400 C 80 440, 70 500, 110 570 C 135 600, 170 615, 210 610 C 170 550, 150 480, 155 400 Z" 
+          fill="url(#thumbRest)" 
+          stroke="#2a2c34" 
+          stroke-width="1" />
+    
+    <!-- Thumb Rest Grip Lines -->
+    <path d="M 100 480 Q 130 495 152 490" stroke="#353844" stroke-width="1.5" fill="none" opacity="0.6"/>
+    <path d="M 95 505 Q 125 520 154 515" stroke="#353844" stroke-width="1.5" fill="none" opacity="0.6"/>
+    <path d="M 95 530 Q 125 545 156 540" stroke="#353844" stroke-width="1.5" fill="none" opacity="0.6"/>
+    <path d="M 100 555 Q 130 570 160 565" stroke="#353844" stroke-width="1.5" fill="none" opacity="0.6"/>
+
+    <!-- Main Upper Body Shell -->
+    <path d="M 180 90 
+             C 220 40, 280 40, 320 90 
+             C 380 170, 405 300, 400 450 
+             C 395 550, 340 620, 260 620 
+             C 200 620, 160 570, 155 450 
+             C 150 320, 150 170, 180 90 Z" 
+          fill="url(#plateGradient)" 
+          stroke="#424654" 
+          stroke-width="1.5" />
+
+    <!-- Center Seam Split Line (Left & Right Main Buttons) -->
+    <path d="M 250 50 L 250 250" stroke="#121317" stroke-width="2.5" />
+
+    <!-- Left Main Click Area (`BTN_LEFT`) -->
+    <path d="M 180 90 C 215 45, 248 45, 248 90 L 248 245 C 200 245, 165 220, 160 170 Z" 
+          fill="none" 
+          stroke="#555968" 
+          stroke-width="1" 
+          opacity="0.5"/>
+
+    <!-- Right Main Click Area (`BTN_RIGHT`) -->
+    <path d="M 320 90 C 285 45, 252 45, 252 90 L 252 245 C 300 245, 335 220, 340 170 Z" 
+          fill="none" 
+          stroke="#555968" 
+          stroke-width="1" 
+          opacity="0.5"/>
+
+    <!-- Main Metallic Scroll Wheel (`BTN_MIDDLE`) -->
+    <rect x="238" y="110" width="24" height="65" rx="12" fill="url(#metalWheel)" stroke="#1a1b20" stroke-width="2"/>
+    <!-- Scroll Wheel Ribs -->
+    <line x1="238" y1="122" x2="262" y2="122" stroke="#2c2e36" stroke-width="1.5"/>
+    <line x1="238" y1="132" x2="262" y2="132" stroke="#2c2e36" stroke-width="1.5"/>
+    <line x1="238" y1="142" x2="262" y2="142" stroke="#2c2e36" stroke-width="1.5"/>
+    <line x1="238" y1="152" x2="262" y2="152" stroke="#2c2e36" stroke-width="1.5"/>
+    <line x1="238" y1="162" x2="262" y2="162" stroke="#2c2e36" stroke-width="1.5"/>
+
+    <!-- DPI Toggle Button -->
+    <rect x="242" y="195" width="16" height="26" rx="5" fill="#18191e" stroke="#505462" stroke-width="1.5"/>
+    <text x="250" y="212" font-family="sans-serif" font-size="9" font-weight="bold" fill="#8a8f9e" text-anchor="middle">DPI</text>
+
+    <!-- Side Metallic Scroll Wheel (Thumb Wheel - `REL_HWHEEL`) -->
+    <rect x="138" y="320" width="16" height="55" rx="8" transform="rotate(-12 146 347)" fill="url(#metalWheel)" stroke="#1a1b20" stroke-width="1.5"/>
+    <!-- Side Wheel Ribs -->
+    <line x1="138" y1="332" x2="154" y2="332" transform="rotate(-12 146 347)" stroke="#2c2e36" stroke-width="1.5"/>
+    <line x1="138" y1="342" x2="154" y2="342" transform="rotate(-12 146 347)" stroke="#2c2e36" stroke-width="1.5"/>
+    <line x1="138" y1="352" x2="154" y2="352" transform="rotate(-12 146 347)" stroke="#2c2e36" stroke-width="1.5"/>
+    <line x1="138" y1="362" x2="154" y2="362" transform="rotate(-12 146 347)" stroke="#2c2e36" stroke-width="1.5"/>
+
+    <!-- Side Button Forward (`BTN_EXTRA`) -->
+    <path d="M 148 395 C 158 393, 164 398, 162 418 C 160 430, 152 432, 145 425 Z" fill="#282a33" stroke="#585c6c" stroke-width="1.2"/>
+
+    <!-- Side Button Back (`BTN_SIDE`) -->
+    <path d="M 144 430 C 152 437, 158 442, 155 460 C 152 470, 144 470, 138 460 Z" fill="#282a33" stroke="#585c6c" stroke-width="1.2"/>
+
+    <!-- Rapoo Brand Logo -->
+    <text x="250" y="470" font-family="sans-serif" font-size="16" font-weight="900" fill="#3a3d47" text-anchor="middle" letter-spacing="3">rapoo</text>
+
+    <!-- Status LED Dot -->
+    <circle cx="250" cy="510" r="3.5" fill="#22c55e"/>
+  </g>
+</svg>
