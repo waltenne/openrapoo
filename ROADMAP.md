@@ -66,14 +66,16 @@
 - [x] Tratamento de hotplug e reconexão automática ao desconectar/reconectar o mouse
 - [x] Liberação graciosa de `grab()` de nós evdev em desligamento de serviço
 
-## Fase 7 — Empacotamento
+## Fase 7 — Empacotamento (Concluída ✅)
 
 **Objetivo:** Distribuição fácil para usuários finais.
 
-- [ ] AppImage via `cargo-appimage` ou `linuxdeploy`
-- [ ] Flatpak manifest (`io.github.openrapoo.OpenRapoo.yaml`)
-- [ ] Publicação no Flathub
-- [ ] AUR (Arch Linux User Repository)
+- [x] Manifesto Flatpak oficial (`packaging/flatpak/io.github.openrapoo.OpenRapoo.yaml`)
+- [x] Script de empacotamento AppImage (`packaging/appimage/build-appimage.sh` + `AppRun`)
+- [x] Receita AUR para Arch Linux (`packaging/aur/PKGBUILD`)
+- [x] Ícone vetorial SVG (`packaging/icons/io.github.openrapoo.OpenRapoo.svg`)
+- [x] Atalho de menu Freedesktop (`packaging/io.github.openrapoo.OpenRapoo.desktop`)
+- [x] Metadados AppStream (`packaging/io.github.openrapoo.OpenRapoo.metainfo.xml`)
 
 ## Fase 8 — Protocolo HID Proprietário (Opcional)
 
