@@ -4,6 +4,7 @@ members = [
     "crates/openrapoo-core",
     "crates/openrapoo-diag",
     "crates/openrapoo-daemon",
+    "crates/openrapoo-gui",
 ]
 
 [workspace.package]
