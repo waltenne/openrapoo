@@ -141,10 +141,10 @@ pub fn build_gtk_ui(app: &gtk4::Application) {
     let window_ref = window.clone();
     let profile_for_cb = current_profile.clone();
     
-    let buttons_page = build_buttons_tab_ui(current_profile, move |btn_info| {
+    let (buttons_page, _selected_btn, _anim_trigger) = build_buttons_tab_ui(current_profile, move |hotspot| {
         let popover = build_action_dialog_popover(
-            btn_info.hex_code,
-            btn_info.name_pt,
+            hotspot.hex_code,
+            hotspot.name_pt,
             &profile_for_cb.borrow(),
             |_new_action| {
                 // Action saved

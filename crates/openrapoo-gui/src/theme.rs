@@ -104,7 +104,7 @@ headerbar {
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 8px;
     padding: 10px 14px;
-    min-width: 175px;
+    min-width: 200px;
     transition: all 120ms ease;
 }
 
@@ -114,9 +114,15 @@ headerbar {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.openlogi-card.active {
-    border-color: #3b82f6;
-    background-color: #1e2538;
+.openlogi-card.selected {
+    border-color: #22c55e;
+    background-color: #172b1e;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+}
+
+.openlogi-card.disabled {
+    opacity: 0.4;
+    background-color: #141417;
 }
 
 .card-label-sub {
@@ -141,7 +147,41 @@ headerbar {
 /* Main Canvas Area */
 .main-canvas {
     background-color: #121215;
-    padding: 24px;
+    padding: 16px;
+}
+
+/* Hotspot Interactive Buttons Overlay */
+.hotspot-overlay-button {
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    min-width: 20px;
+    min-height: 20px;
+    transition: all 150ms ease;
+}
+
+.hotspot-overlay-button:hover {
+    background-color: rgba(69, 211, 105, 0.3);
+    box-shadow: 0 0 8px #45d369;
+}
+
+.hotspot-overlay-button.selected {
+    background-color: #22c55e;
+    box-shadow: 0 0 14px #22c55e;
+}
+
+.hotspot-overlay-button.pressed {
+    background-color: #3b82f6;
+    box-shadow: 0 0 16px #3b82f6;
+}
+
+.hotspot-overlay-button.disabled {
+    opacity: 0.35;
+}
+
+.hotspot-overlay-button.error {
+    background-color: #ef4444;
+    box-shadow: 0 0 12px #ef4444;
 }
 
 /* Bottom Status Footer */
@@ -176,5 +216,3 @@ pub fn load_custom_css() {
         info!("Applied OpenLogi minimal dark CSS styling for OpenRapoo");
     }
 }
-
-
