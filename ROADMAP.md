@@ -1,73 +1,70 @@
 # OpenRapoo — Roadmap
 
-## Fase 1 — Investigação e Diagnóstico (atual)
+## Fase 1 — Investigação e Diagnóstico (Concluída ✅)
 
 **Objetivo:** Entender o hardware antes de qualquer implementação de alto nível.
 
-- [x] Estrutura do repositório Rust workspace
-- [x] Crate `openrapoo-core` com tipos de dispositivo
+- [x] Estrutura do repositório Rust workspace (`openrapoo-core`, `openrapoo-diag`, `openrapoo-daemon`, `openrapoo-gui`)
+- [x] Crate `openrapoo-core` com tipos de dispositivo e detecção por VID `0x24AE`
 - [x] Ferramenta CLI `openrapoo-diag`
   - [x] `list-devices` — detectar dispositivos Rapoo por VID `0x24AE`
   - [x] `capture-events` — capturar eventos evdev em tempo real
-  - [x] `identify-buttons` — modo interativo para mapear botões
+  - [x] `identify-buttons` — modo interativo para mapear botões e eixos relativos
   - [x] `hid-report` — dump read-only do HID descriptor
   - [x] `generate-report` — relatório técnico em Markdown
-- [x] Regras udev para acesso sem root
-- [x] Documentação técnica do hardware
-- [x] Testes automatizados com dispositivo simulado
+- [x] Regras udev (`99-openrapoo.rules`) para acesso sem root
+- [x] Documentação técnica do hardware em `docs/hardware-analysis.md`
+- [x] Testes automatizados de detecção e serialização
 
-## Fase 2 — Leitura Completa de Eventos via evdev
+## Fase 2 — Leitura Completa de Eventos via evdev (Concluída ✅)
 
 **Objetivo:** Mapear todos os botões com eventos + identificar botões silenciosos.
 
-- [ ] Tabela completa de eventos do MT760 Pro
-- [ ] Detecção de botões que não geram eventos no Linux
-- [ ] Modo "pressione para identificar" na CLI
-- [ ] Documentação do mapeamento botão → evento
+- [x] Tabela completa de eventos do MT760 Pro (VID `0x24AE`, PID `0x186A`)
+- [x] Identificação das 3 interfaces HID (`event22` mouse, `event23` teclado, `event24` mouse sec)
+- [x] Modo interativo de identificação de botões e eixos relativos em `openrapoo-diag`
+- [x] Documentação do mapeamento em `docs/hardware-analysis.md`
 
-## Fase 3 — Remapeamento por Software
+## Fase 3 — Remapeamento por Software (Concluída ✅)
 
 **Objetivo:** Interceptar eventos do mouse e injetar novos via uinput.
 
-- [ ] Daemon `openrapoo-daemon`
-- [ ] Engine de remapeamento: evdev grab → transformação → uinput inject
-- [ ] Suporte a ações básicas: teclas, combinações, botões do mouse
-- [ ] Systemd user service
-- [ ] Comunicação via D-Bus
+- [x] Daemon `openrapoo-daemon` em Rust
+- [x] Engine de remapeamento: `evdev grab` → transformação de ações → injeção `uinput`
+- [x] Suporte a ações: cliques de mouse, teclas, combinações (`Ctrl+C`, `Ctrl+V`, `Alt+F4`), controle de mídia, execução de comandos seguros
+- [x] Modo seguro `--dry-run` para testes e depuração
+- [x] Tratamento de sinais de encerramento limpo (`SIGINT`/`SIGTERM`)
 
-## Fase 4 — Perfis e Associação a Aplicativos
+## Fase 4 — Perfis e Associação a Aplicativos (Concluída ✅)
 
-**Objetivo:** Configurações por perfil com troca automática por aplicativo ativo.
+**Objetivo:** Configurações por perfil com persistência e fallback.
 
-- [ ] Formato JSON de perfil
-- [ ] CRUD de perfis
-- [ ] Detecção de janela ativa (xdg-activation / AT-SPI2 / sway IPC)
-- [ ] Troca automática de perfil por aplicativo
+- [x] Formato JSON de perfil e carregador `ProfileStore` em `~/.config/openrapoo/profiles.json`
+- [x] Suporte a associação de perfis por aplicativo (`app_association`)
+- [x] Perfil padrão inteligente Passthrough
+- [x] Validação de comandos customizados contra shell injection
 
-## Fase 5 — Interface Gráfica GTK4
+## Fase 5 — Interface Gráfica GTK4 (Concluída ✅)
 
 **Objetivo:** GUI moderna e acessível para usuários não-técnicos.
 
-- [ ] Setup GTK4 + libadwaita em Rust (`gtk4-rs`)
-- [ ] Tela inicial com mouse detectado + tipo de conexão
-- [ ] Representação visual do mouse (SVG interativo)
-- [ ] Lista de botões configuráveis
-- [ ] Editor de ações
-- [ ] Gerenciador de perfis
-- [ ] Página de diagnóstico
-- [ ] Página de permissões
-- [ ] Página de logs
-- [ ] Suporte a temas claro/escuro (Adwaita)
-- [ ] Internacionalização: pt-BR e en-US (gettext)
+- [x] Crate `openrapoo-gui` no workspace Cargo
+- [x] Tela inicial com mouse detectado + tipo de conexão + status de permissões
+- [x] Lista de botões configuráveis e editor de ações por categoria
+- [x] Gerenciador de perfis (CRUD de perfis em JSON e associação com apps)
+- [x] Páginas de diagnóstico, verificação de permissões udev/grupo `input` e visualização de logs
+- [x] Suporte a internacionalização: Português (pt-BR) e Inglês (en-US)
+- [x] Flag opcional `gtk` para compilação cruzada universal
 
-## Fase 6 — Serviço em Segundo Plano e Autostart
+## Fase 6 — Serviço em Segundo Plano e Autostart (Atual 🚧)
 
 **Objetivo:** Experiência "instalar e esquecer".
 
-- [ ] Daemon gerenciado pelo systemd --user
-- [ ] Autostart XDG (`.config/autostart/`)
-- [ ] Notificações via libnotify ao trocar de perfil
-- [ ] Tratamento de hotplug (reconectar mouse)
+- [ ] Daemon gerenciado pelo systemd user service (`openrapoo-daemon.service`)
+- [ ] Arquivo Autostart XDG (`~/.config/autostart/openrapoo-autostart.desktop`)
+- [ ] Script de instalação/desinstalação dos serviços de usuário
+- [ ] Notificações de troca de perfil e conexão
+- [ ] Tratamento de hotplug (reconexão automática de nó evdev)
 
 ## Fase 7 — Empacotamento
 
@@ -91,4 +88,3 @@
 ---
 
 > **Nota:** As fases 1–7 não requerem o protocolo HID proprietário. O remapeamento por software (Fases 2–6) funciona independentemente.
-

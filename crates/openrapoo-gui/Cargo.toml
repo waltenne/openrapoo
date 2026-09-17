@@ -28,3 +28,4 @@ dirs.workspace = true
 [features]
 default = []
 gtk = ["dep:gtk4", "dep:libadwaita"]
+

@@ -56,69 +56,101 @@ impl Remapper {
         })
     }
 
-    /// Run the main remapping event loop.
+    /// Run the main remapping event loop with automatic hotplug & reconnect support.
     pub async fn run(&mut self) -> Result<()> {
-        let evdev_paths = self.resolve_device_paths()?;
+        info!("OpenRapoo daemon service active.");
 
-        if evdev_paths.is_empty() {
-            anyhow::bail!("No accessible Rapoo evdev device nodes found to remap.");
-        }
-
-        info!("Starting remapping engine on {} node(s)", evdev_paths.len());
-
-        let mut devices = Vec::new();
-        for path in &evdev_paths {
-            match Device::open(path) {
-                Ok(mut dev) => {
-                    let name = dev.name().unwrap_or("Unknown").to_string();
-                    if !self.config.dry_run {
-                        if let Err(e) = dev.grab() {
-                            warn!("Could not grab device {}: {e}. Events may leak to OS.", path.display());
-                        } else {
-                            info!("Grabbed exclusive access on {} ({name})", path.display());
-                        }
-                    } else {
-                        info!("DRY-RUN: Inspecting {} ({name}) without grab", path.display());
-                    }
-                    devices.push((path.clone(), dev));
-                }
-                Err(e) => {
-                    warn!("Failed to open evdev node {}: {e}", path.display());
-                }
-            }
-        }
-
-        if devices.is_empty() {
-            anyhow::bail!("Could not open any Rapoo input device nodes.");
-        }
-
-        // Event processing loop
         while !self.shutdown_signal.load(Ordering::Relaxed) {
-            let mut processed_any = false;
+            let evdev_paths = match self.resolve_device_paths() {
+                Ok(paths) => paths,
+                Err(e) => {
+                    debug!("Device discovery failed: {e}");
+                    Vec::new()
+                }
+            };
 
-            for (path, dev) in &mut devices {
-                let events_res = tokio::task::block_in_place(|| {
-                    dev.fetch_events().map(|e| e.collect::<Vec<_>>())
-                });
+            if evdev_paths.is_empty() {
+                info!("Waiting for Rapoo MT760 Pro mouse to be connected...");
+                tokio::time::sleep(std::time::Duration::from_secs(4)).await;
+                continue;
+            }
 
-                if let Ok(events) = events_res {
-                    if !events.is_empty() {
-                        processed_any = true;
-                        self.process_events(path, &events);
+            info!("Discovered {} Rapoo input node(s). Opening devices...", evdev_paths.len());
+
+            let mut devices = Vec::new();
+            for path in &evdev_paths {
+                match Device::open(path) {
+                    Ok(mut dev) => {
+                        let name = dev.name().unwrap_or("Unknown").to_string();
+                        if !self.config.dry_run {
+                            if let Err(e) = dev.grab() {
+                                warn!("Could not grab device {}: {e}. Events may leak to OS.", path.display());
+                            } else {
+                                info!("Grabbed exclusive access on {} ({name})", path.display());
+                            }
+                        } else {
+                            info!("DRY-RUN: Inspecting {} ({name}) without grab", path.display());
+                        }
+                        devices.push((path.clone(), dev));
+                    }
+                    Err(e) => {
+                        warn!("Failed to open evdev node {}: {e}", path.display());
                     }
                 }
             }
 
-            if !processed_any {
-                tokio::time::sleep(std::time::Duration::from_millis(5)).await;
+            if devices.is_empty() {
+                warn!("No Rapoo input nodes could be opened. Retrying in 5 seconds...");
+                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                continue;
             }
-        }
 
-        // Cleanup: ungrab devices gracefully
-        for (path, mut dev) in devices {
-            if !self.config.dry_run {
-                let _ = dev.ungrab();
-                info!("Released grab on {}", path.display());
+            info!("Remapping engine active on {} device node(s)", devices.len());
+
+            // Device monitoring loop
+            let mut device_disconnected = false;
+            while !self.shutdown_signal.load(Ordering::Relaxed) && !device_disconnected {
+                let mut processed_any = false;
+
+                for (path, dev) in &mut devices {
+                    let events_res = tokio::task::block_in_place(|| {
+                        dev.fetch_events().map(|e| e.collect::<Vec<_>>())
+                    });
+
+                    match events_res {
+                        Ok(events) => {
+                            if !events.is_empty() {
+                                processed_any = true;
+                                self.process_events(path, &events);
+                            }
+                        }
+                        Err(e) => {
+                            if e.kind() == std::io::ErrorKind::Interrupted {
+                                continue;
+                            }
+                            warn!("Device {} disconnected or I/O error: {e}", path.display());
+                            device_disconnected = true;
+                            break;
+                        }
+                    }
+                }
+
+                if !processed_any && !device_disconnected {
+                    tokio::time::sleep(std::time::Duration::from_millis(5)).await;
+                }
+            }
+
+            // Cleanup current device grab before reconnecting or exiting
+            for (path, mut dev) in devices {
+                if !self.config.dry_run {
+                    let _ = dev.ungrab();
+                    info!("Released grab on {}", path.display());
+                }
+            }
+
+            if device_disconnected {
+                info!("Rapoo mouse disconnected. Will attempt reconnect...");
+                tokio::time::sleep(std::time::Duration::from_secs(3)).await;
             }
         }
 

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=OpenRapoo Daemon
+Comment=Background event remapping service for Rapoo MT760 Pro mouse
+Exec=openrapoo-daemon
+Terminal=false
+Categories=Utility;Settings;HardwareSettings;
+X-GNOME-Autostart-enabled=true
+StartupNotify=false
