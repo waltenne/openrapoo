@@ -56,15 +56,15 @@
 - [x] Suporte a internacionalização: Português (pt-BR) e Inglês (en-US)
 - [x] Flag opcional `gtk` para compilação cruzada universal
 
-## Fase 6 — Serviço em Segundo Plano e Autostart (Atual 🚧)
+## Fase 6 — Serviço em Segundo Plano e Autostart (Concluída ✅)
 
 **Objetivo:** Experiência "instalar e esquecer".
 
-- [ ] Daemon gerenciado pelo systemd user service (`openrapoo-daemon.service`)
-- [ ] Arquivo Autostart XDG (`~/.config/autostart/openrapoo-autostart.desktop`)
-- [ ] Script de instalação/desinstalação dos serviços de usuário
-- [ ] Notificações de troca de perfil e conexão
-- [ ] Tratamento de hotplug (reconexão automática de nó evdev)
+- [x] Daemon gerenciado pelo systemd user service (`systemd/openrapoo-daemon.service`)
+- [x] Arquivo Autostart XDG (`autostart/openrapoo-autostart.desktop`)
+- [x] Script de instalação automatizada (`scripts/install-service.sh`)
+- [x] Tratamento de hotplug e reconexão automática ao desconectar/reconectar o mouse
+- [x] Liberação graciosa de `grab()` de nós evdev em desligamento de serviço
 
 ## Fase 7 — Empacotamento
 
