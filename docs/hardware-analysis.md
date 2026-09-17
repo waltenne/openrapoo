@@ -21,19 +21,17 @@
 
 | Modo de conexão | PID | Status | Nome no kernel |
 |---|---|---|---|
-| NearLink/2.4 GHz (receptor USB) | `0x186A` | ✅ **CONFIRMADO** | `ITON Corp. Rapoo NearLink Mouse` |
-| Bluetooth 5.0 | desconhecido | ⚠️ Não testado | — |
-| USB-C (com fio) | desconhecido | ⚠️ Não testado | — |
+| 2.4 GHz (receptor USB) | `0x186A` | ✅ **CONFIRMADO** | `ITON Corp. Rapoo NearLink Mouse` |
+| Bluetooth | não confirmado | ⚠️ Não testado no Linux | — |
+| USB-C (com fio) | não confirmado | ⚠️ Não testado no Linux | — |
 
-**Descoberta importante:** O fabricante real do receptor é **ITON Corp.** (não Rapoo diretamente), e o receptor é identificado como "NearLink Mouse" mesmo quando conectado via 2.4 GHz regular. O receptor expõe **3 interfaces HID** sob o mesmo PID `0x186A`:
+**Descoberta importante:** O fabricante real do receptor é **ITON Corp.** (não Rapoo diretamente), e o receptor é identificado como "NearLink Mouse" no kernel quando conectado via receptor USB 2.4 GHz. O receptor expõe **3 interfaces HID** sob o mesmo PID `0x186A`:
 
 | Interface | Localização | Tipo | Nó evdev |
 |---|---|---|---|
 | Mouse (primária) | `input0` | Mouse | `event22` |
 | Teclado | `input1` | Keyboard | `event23` |
 | Mouse (secundária) | `input1` | Mouse | `event24` |
-
-A interface de **Keyboard** (`event23`) é especialmente interessante: indica que botões adicionais do mouse podem gerar eventos de **teclado**, não apenas eventos de mouse. Isso é comum em mouses com botões de mídia ou atalhos.
 
 ### HID devices em `/sys/bus/hid/devices`
 
@@ -67,24 +65,12 @@ O receptor USB 2.4 GHz é reconhecido como um dispositivo HID padrão. O kernel 
 ### Bluetooth
 
 Quando conectado via Bluetooth:
-- Aparece como dispositivo `/sys/bus/hid/devices/0005:24AE:XXXX.*`
-- Bus ID: `0x0005` (BT_HOST_DEVICE)
-- Cria nós `event*` da mesma forma
-- O nó `hidraw` também está disponível
+- Status: **não confirmado / requer investigação adicional**
+- Se reconhecido, cria nós `event*` via subsistema HID host.
 
 ### NearLink
 
-> ❌ **NearLink é proprietário da Huawei e não tem suporte no kernel Linux.**  
-> O receptor NearLink pode aparecer como dispositivo USB HID genérico,  
-> mas funcionalidades avançadas requerem driver proprietário.  
-> Status: **desconhecido** — precisa de teste com hardware real.
-
-### USB-C Wired
-
-Quando conectado via cabo USB-C:
-- Funciona como dispositivo USB HID padrão
-- Potencialmente com polling rate mais alto (até 2000 Hz, mas o kernel limita)
-- Mesmo comportamento que o receptor 2.4 GHz no nível de driver
+> Status: **não detectado no Linux** — a conexão via receptor USB 2.4 GHz opera através do nó HID genérico do kernel Linux.
 
 ---
 

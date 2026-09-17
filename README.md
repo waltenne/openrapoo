@@ -15,71 +15,43 @@ O OpenRapoo está na **Fase 1 de desenvolvimento**: investigação do hardware e
 
 | Funcionalidade | Status |
 |---|---|
-| Detectar Rapoo MT760 Pro conectado | ✅ |
+| Detectar Rapoo MT760 Pro conectado (VID `0x24AE`, PID `0x186A`) | ✅ |
 | Capturar eventos evdev (movimentos, cliques) | ✅ |
 | Identificar botões por evento | ✅ |
-| Ler HID descriptor (read-only) | ✅ |
+| Remapeamento por software (`evdev` + `uinput`) | ✅ |
+| Interface Gráfica GTK4 | ✅ |
 | Gerar relatório técnico de diagnóstico | ✅ |
 
-### O que **não** funciona (ainda)
-
-| Funcionalidade | Motivo |
-|---|---|
-| Ajuste de DPI | Requer protocolo HID proprietário (Fase 8) |
-| Configuração na memória do mouse | Protocolo não documentado |
-| Remapeamento de botões | Fase 3 (em desenvolvimento) |
-| Interface gráfica | Fase 5 (planejada) |
-| NearLink no Linux | Sem suporte no kernel Linux |
-
 ---
 
-## Instalação (Fase 1 — Ferramenta de diagnóstico)
+## Uso — Interface Gráfica e CLI
 
-### Dependências
-
-```bash
-# Ubuntu/Debian
-sudo apt install libhidapi-dev libudev-dev build-essential
-
-# Fedora/RHEL
-sudo dnf install hidapi-devel systemd-devel gcc
-```
-
-### Compilar
+### Interface Gráfica (GTK4)
 
 ```bash
-git clone https://github.com/openrapoo/openrapoo
-cd openrapoo
-cargo build --release
+cargo run --bin openrapoo-gui --features gtk
 ```
 
-### Configurar permissões de acesso
+### Diagnóstico via CLI (`openrapoo-gui` / `openrapoo-diag`)
 
 ```bash
-# Instalar regras udev (necessário uma vez)
-sudo cp udev/99-openrapoo.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules
-sudo usermod -aG input $USER
-# Reiniciar a sessão para aplicar
+# Diagnóstico de permissões e dispositivo
+cargo run --bin openrapoo-gui -- --diagnose
+
+# Listar dispositivos Rapoo detectados
+cargo run --bin openrapoo-gui -- --list-devices
+
+# Instalar regras udev
+sudo cargo run --bin openrapoo-gui -- --install-udev
 ```
 
----
-
-## Uso — CLI de Diagnóstico (`openrapoo-diag`)
-
-### Listar dispositivos Rapoo conectados
-
-```bash
-./target/release/openrapoo-diag list-devices
-```
-
-Exemplo de saída:
+Exemplo de saída de detecção:
 ```
 Dispositivos Rapoo detectados:
-  [1] Rapoo MT760 Pro
-      VID: 0x24AE  PID: 0x????
-      Conexão: USB (wired)
-      evdev:  /dev/input/event5
+  [1] ITON Corp. Rapoo NearLink Mouse
+      VID: 0x24AE  PID: 0x186A
+      Conexão: receptor 2.4 GHz wireless
+      evdev:  /dev/input/event22
       hidraw: /dev/hidraw2
 ```
 

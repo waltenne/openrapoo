@@ -45,10 +45,10 @@ impl GroupMembershipState {
 }
 
 /// Content of the official OpenRapoo udev rules file.
-pub const OPENRAPOO_UDEV_RULES_CONTENT: &str = r#"# Rapoo devices — allow read/write access for members of the 'input' group
-# without requiring root privileges.
-SUBSYSTEM=="hidraw", ATTRS{idVendor}=="24ae", TAG+="uaccess", GROUP="input", MODE="0660"
-SUBSYSTEM=="input", ATTRS{idVendor}=="24ae", TAG+="uaccess", GROUP="input", MODE="0660"
+pub const OPENRAPOO_UDEV_RULES_CONTENT: &str = r#"# Rapoo MT760 Pro (Receptor 2.4 GHz Wireless / ITON Corp. VID: 0x24AE, PID: 0x186A)
+# Allows read/write access for members of the 'input' group and desktop users via uaccess
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="24ae", ATTRS{idProduct}=="186a", TAG+="uaccess", GROUP="input", MODE="0660"
+SUBSYSTEM=="input", ATTRS{idVendor}=="24ae", ATTRS{idProduct}=="186a", TAG+="uaccess", GROUP="input", MODE="0660"
 KERNEL=="uinput", GROUP="input", MODE="0660"
 "#;
 

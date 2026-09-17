@@ -1,22 +1,20 @@
-# Rapoo devices — allow read/write access for members of the 'input' group
+# Rapoo MT760 Pro (Receptor 2.4 GHz Wireless / ITON Corp. VID: 0x24AE, PID: 0x186A)
+# Allows read/write access for members of the 'input' group and desktop users via uaccess
 # without requiring root privileges.
 #
 # To install:
+#   sudo cargo run --bin openrapoo-gui -- --install-udev
+#   or manually:
 #   sudo cp 99-openrapoo.rules /etc/udev/rules.d/
 #   sudo udevadm control --reload-rules
 #   sudo udevadm trigger
 #   sudo usermod -aG input $USER
-#   (log out and back in)
-#
-# Vendor ID 0x24AE = Shenzhen Rapoo Technology Co., Ltd.
 
-# hidraw — allows openrapoo-diag to read HID descriptors and feature reports
-SUBSYSTEM=="hidraw", ATTRS{idVendor}=="24ae", TAG+="uaccess", GROUP="input", MODE="0660"
+# hidraw — allows openrapoo to read HID descriptors and feature reports for Rapoo MT760 Pro (0x24AE:0x186A)
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="24ae", ATTRS{idProduct}=="186a", TAG+="uaccess", GROUP="input", MODE="0660"
 
-# input event nodes — allows openrapoo-diag and daemon to read evdev events
-SUBSYSTEM=="input", ATTRS{idVendor}=="24ae", TAG+="uaccess", GROUP="input", MODE="0660"
+# input event nodes — allows openrapoo to read evdev events for Rapoo MT760 Pro (0x24AE:0x186A)
+SUBSYSTEM=="input", ATTRS{idVendor}=="24ae", ATTRS{idProduct}=="186a", TAG+="uaccess", GROUP="input", MODE="0660"
 
-# uinput — needed by the remapping daemon (Phase 3) to inject virtual events
-# Only grant access if the user is in the 'input' group
+# uinput — needed by the remapping daemon to inject virtual input events
 KERNEL=="uinput", GROUP="input", MODE="0660"
-

@@ -11,16 +11,15 @@ Aplicativo Linux open source para configurar botões e recursos do mouse **Rapoo
 | Item | Valor / Status |
 |---|---|
 | **Vendor ID** | `0x24AE` (Shenzhen Rapoo Technology Co., Ltd.) |
-| **Product ID** | Desconhecido — precisa de `lsusb` com o mouse conectado. Faixa provável: `0x20xx`–`0x30xx` |
-| **Sensor** | PixArt PAW3311 |
-| **Botões físicos** | 9 (L/R click, Frente/Trás, clique do scroll, roda lateral, DPI, troca de dispositivo, + 1 extra) |
-| **Entradas programáveis** | 11 (via software oficial A HUB no Windows/macOS) |
-| **Conectividade** | NearLink, 2.4 GHz (receptor USB), Bluetooth 5.0, USB-C (com fio) |
-| **Dispositivos simultâneos** | Até 7 |
-| **Memória onboard** | Sim — configurações persistem sem software ativo |
+| **Product ID** | `0x186A` (confirmado via receptor 2.4 GHz wireless / ITON Corp.) |
+| **Sensor** | não confirmado |
+| **Botões físicos** | depende do firmware / não confirmado |
+| **Entradas programáveis** | depende do firmware / não confirmado |
+| **Conectividade** | receptor 2.4 GHz wireless observado (Bluetooth e USB-C com fio requerem investigação adicional) |
+| **Dispositivos simultâneos** | não confirmado |
+| **Memória onboard** | depende do firmware / não confirmado no Linux |
 | **Driver Linux padrão** | `hid-generic` / `usbhid` (plug-and-play para funções básicas) |
-| **Suporte libratbag** | **Não** — nenhuma entrada para Rapoo MT760 no banco de dados |
-| **Protocolo HID proprietário** | **Não documentado** — requer engenharia reversa (Fase 8) |
+| **Protocolo HID proprietário** | não documentado — requer investigação adicional (Fase 8) |
 
 ### O que funciona no Linux (estado atual esperado)
 
@@ -30,20 +29,18 @@ Aplicativo Linux open source para configurar botões e recursos do mouse **Rapoo
 | Clique direito | ✅ Funciona | BTN_RIGHT |
 | Clique do meio | ✅ Funciona | BTN_MIDDLE |
 | Scroll vertical | ✅ Funciona | REL_WHEEL |
-| Botão Voltar (lateral) | ✅ Provável | BTN_SIDE / BTN_EXTRA |
-| Botão Avançar (lateral) | ✅ Provável | BTN_FORWARD |
-| Roda lateral | ⚠️ Incerto | REL_HWHEEL ou mudo |
-| Botão DPI | ⚠️ Incerto | Pode gerar evento ou ser silencioso |
-| Botão de troca de dispositivo | ❌ Provável mudo | Processado pelo firmware |
-| Botão extra customizável | ⚠️ Incerto | Depende do firmware |
-| Ajuste de DPI via software | ❌ Não disponível | Requer protocolo proprietário |
-| NearLink como conexão separada | ❌ Incerto | Pode aparecer como 2.4 GHz no Linux |
+| Botão Voltar (lateral) | ✅ Funciona | BTN_SIDE / BTN_EXTRA |
+| Botão Avançar (lateral) | ✅ Funciona | BTN_FORWARD / BTN_EXTRA |
+| Roda lateral | ⚠️ Suportado | REL_HWHEEL (declarado no kernel) |
+| Botão DPI | ⚠️ Depende do firmware | Pode gerar evento ou ser silencioso |
+| Botão de troca de dispositivo | ❌ Processado pelo firmware | Silencioso no host |
+| Ajuste de DPI via software | ❌ Não disponível | Requer protocolo proprietário não documentado |
 
 > [!IMPORTANT]
-> O Product ID exato é desconhecido e deve ser descoberto via `lsusb` com o mouse conectado. A ferramenta de diagnóstico da Fase 1 levantará esse dado automaticamente.
+> O Product ID exato do dispositivo detectado é `0x186A` (Vendor ID `0x24AE`, nome `ITON Corp. Rapoo NearLink Mouse`).
 
-> [!WARNING]
-> Nenhum projeto open source existente (libratbag, OpenRazer, OpenLogi) suporta o Rapoo MT760 Pro. Este projeto começará do zero no que tange ao protocolo do mouse.
+> [!NOTE]
+> Suporte a protocolos proprietários e engenharia reversa dependem do comportamento do firmware e testes no Linux.
 
 ### Projetos de referência
 

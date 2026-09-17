@@ -79,7 +79,7 @@
 
 ## Fase 8 — Protocolo HID Proprietário (Opcional)
 
-**Objetivo:** Ajuste de DPI, configuração de memória onboard — **somente se protocolo validado**.
+**Objetivo:** Ajuste de DPI via comandos HID — **somente se protocolo validado (requer investigação adicional)**.
 
 - [ ] Captura de tráfego USB com `usbmon` + Wireshark
 - [ ] Análise do software A HUB em VM Windows

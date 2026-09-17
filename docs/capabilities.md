@@ -55,32 +55,28 @@
 
 | Funcionalidade | Motivo | Condição para mudar |
 |---|---|---|
-| Ajustar DPI no Linux | Requer protocolo HID proprietário não documentado | Fase 8: engenharia reversa |
-| Configurar memória onboard do mouse | Requer protocolo HID proprietário | Fase 8: engenharia reversa |
-| Remapear botões que não geram eventos evdev | Eventos silenciosos não chegam ao sistema operacional | Fase 8: possível via protocolo HID |
-| Usar NearLink no Linux | Sem suporte no kernel Linux | Requer driver proprietário ou porta para o kernel |
-| Polling rate de 2000 Hz via Bluetooth | Bluetooth padrão limita a 125 Hz | Não contornável |
-| Configurar iluminação (se houver) | Protocolo proprietário | Fase 8 |
+| Ajustar DPI no Linux | Requer protocolo HID proprietário não documentado | Fase 8: investigação adicional |
+| Configurar memória onboard do mouse | depende do firmware / não confirmado | Fase 8: investigação adicional |
+| Remapear botões que não geram eventos evdev | Eventos silenciosos não chegam ao sistema operacional | Fase 8: possível se houver comando HID |
+| Usar NearLink no Linux | não detectado no Linux (opera via receptor USB 2.4 GHz) | Requer investigação adicional |
+| Configurar iluminação (se houver) | não confirmado | Fase 8 |
 
-### Botões provavelmente silenciosos
+### Botões silenciosos ou tratados pelo firmware
 
 | Botão | Status | Alternativa |
 |---|---|---|
-| Troca de dispositivo | Processado pelo firmware | Nenhuma — é intencional |
-| DPI (possível) | Pode não gerar evento | Verificar com `identify-buttons` |
+| Troca de dispositivo | Processado pelo firmware | Nenhuma — é intencional no hardware |
+| DPI | Depende do firmware | Verificar com `identify-buttons` |
 
 ---
 
-## ⚠️ O que ainda precisamos descobrir
+## ⚠️ O que ainda precisa de investigação adicional
 
 | Questão | Como descobrir |
 |---|---|
-| PID real do MT760 Pro | `lsusb` com mouse conectado |
-| Botão DPI gera evento? | `identify-buttons` |
+| Botão DPI gera evento em todos os modos? | `identify-buttons` |
 | Roda lateral gera `REL_HWHEEL`? | `capture-events` |
-| Botão extra customizável gera evento? | `identify-buttons` |
-| NearLink aparece como 2.4 GHz no Linux? | Teste com hardware |
-| HID descriptor tem Usage Page vendor-defined? | `hid-report` |
+| Comandos HID proprietários para DPI | `hid-report` / captura USBmon |
 
 ---
 

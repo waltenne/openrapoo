@@ -117,6 +117,8 @@ fn test_udev_rule_installation_custom_dir() {
 
     let content = fs::read_to_string(&installed_file).unwrap();
     assert!(content.contains("ATTRS{idVendor}==\"24ae\""));
+    assert!(content.contains("ATTRS{idProduct}==\"186a\""));
+    assert!(content.contains("TAG+=\"uaccess\""));
     assert!(content.contains("GROUP=\"input\""));
 
     // Cleanup
