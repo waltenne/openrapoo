@@ -28,5 +28,6 @@ dirs.workspace = true
 
 [features]
 default = []
-gtk = ["dep:gtk4", "dep:libadwaita"]
+gtk = ["dep:gtk4"]
+adw = ["gtk", "dep:libadwaita"]
 

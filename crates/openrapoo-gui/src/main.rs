@@ -112,22 +112,41 @@ fn main() {
         .init();
 
     info!("OpenRapoo GUI v{}", env!("CARGO_PKG_VERSION"));
-    info!("{}", tr("Inicializando interface gráfica GTK4 + libadwaita...", "Initializing GTK4 + libadwaita GUI..."));
+    info!("{}", tr("Inicializando interface gráfica GTK4...", "Initializing GTK4 GUI..."));
 
-    let controller = AppWindowController::default();
+    #[cfg(feature = "gtk")]
+    {
+        use gtk4::prelude::*;
+        let app = gtk4::Application::builder()
+            .application_id("io.github.openrapoo.OpenRapoo")
+            .build();
 
-    println!();
-    println!("  ╔══════════════════════════════════════════════════════════════╗");
-    println!("  ║                   OpenRapoo GTK4 Interface                   ║");
-    println!("  ╠══════════════════════════════════════════════════════════════╣");
-    println!("  ║  Status: {}", controller.home_state.status_message);
-    if let Some(ref dev) = controller.home_state.detected_device {
-        println!("  ║  Dispositivo: {} (0x{:04X}:0x{:04X})", dev.name, dev.vendor_id, dev.product_id);
-        println!("  ║  Conexão: {}", dev.connection);
+        app.connect_activate(|app| {
+            app_window::build_gtk_ui(app);
+        });
+
+        let empty_args: Vec<String> = vec![std::env::args().next().unwrap_or_default()];
+        app.run_with_args(&empty_args);
+        return;
     }
-    println!("  ║  Perfis carregados: {}", controller.profiles_state.store.profiles.len());
-    println!("  ║  Regras udev: {}", if controller.permissions_status.udev_rule_exists { "Instaladas ✓" } else { "Ausentes ✗" });
-    println!("  ║  Grupo input: {}", controller.permissions_status.input_group_state.display_message_pt());
-    println!("  ╚══════════════════════════════════════════════════════════════╝");
-    println!();
+
+    #[cfg(not(feature = "gtk"))]
+    {
+        let controller = AppWindowController::default();
+
+        println!();
+        println!("  ╔══════════════════════════════════════════════════════════════╗");
+        println!("  ║                   OpenRapoo GTK4 Interface                   ║");
+        println!("  ╠══════════════════════════════════════════════════════════════╣");
+        println!("  ║  Status: {}", controller.home_state.status_message);
+        if let Some(ref dev) = controller.home_state.detected_device {
+            println!("  ║  Dispositivo: {} (0x{:04X}:0x{:04X})", dev.name, dev.vendor_id, dev.product_id);
+            println!("  ║  Conexão: {}", dev.connection);
+        }
+        println!("  ║  Perfis carregados: {}", controller.profiles_state.store.profiles.len());
+        println!("  ║  Regras udev: {}", if controller.permissions_status.udev_rule_exists { "Instaladas ✓" } else { "Ausentes ✗" });
+        println!("  ║  Grupo input: {}", controller.permissions_status.input_group_state.display_message_pt());
+        println!("  ╚══════════════════════════════════════════════════════════════╝");
+        println!();
+    }
 }
