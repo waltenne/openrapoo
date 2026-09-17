@@ -7,6 +7,7 @@ pub mod device;
 pub mod error;
 pub mod event;
 pub mod config;
+pub mod permissions;
 
 pub use device::{ConnectionType, KnownDevice, RapooDevice};
 pub use error::OpenRapooError;

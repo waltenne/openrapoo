@@ -34,3 +34,4 @@ chmod +x "${BUILD_DIR}/usr/bin/"*
 echo "AppDir structure prepared at: ${BUILD_DIR}"
 echo "To generate the final AppImage file using appimagetool:"
 echo "  appimagetool ${BUILD_DIR} OpenRapoo-x86_64.AppImage"
+

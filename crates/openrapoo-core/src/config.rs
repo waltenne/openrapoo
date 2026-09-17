@@ -199,8 +199,55 @@ impl ProfileStore {
         })
     }
 
-    /// Get default config directory path (`~/.config/openrapoo/`).
+    /// Get default config directory path (`$XDG_CONFIG_HOME/openrapoo/profiles.json` or `~/.config/openrapoo/profiles.json`).
+    ///
+    /// Respects `SUDO_USER` when executed under `sudo` to avoid writing to `/root/.config`.
     pub fn default_config_path() -> PathBuf {
+        let sudo_user = std::env::var("SUDO_USER").ok();
+        let xdg_config = std::env::var("XDG_CONFIG_HOME").ok();
+        let home = std::env::var("HOME").ok();
+
+        Self::resolve_config_path_internal(
+            sudo_user.as_deref(),
+            xdg_config.as_deref(),
+            home.as_deref(),
+        )
+    }
+
+    /// Internal logic for resolving the configuration path (decoupled for unit tests).
+    pub fn resolve_config_path_internal(
+        sudo_user: Option<&str>,
+        xdg_config: Option<&str>,
+        home: Option<&str>,
+    ) -> PathBuf {
+        // 1. If running under sudo, use real user's home dir
+        if let Some(user) = sudo_user {
+            let user_trim = user.trim();
+            if !user_trim.is_empty() && user_trim != "root" {
+                let user_home = PathBuf::from("/home").join(user_trim);
+                if user_home.exists() {
+                    return user_home.join(".config").join("openrapoo").join("profiles.json");
+                }
+            }
+        }
+
+        // 2. Respect XDG_CONFIG_HOME if set
+        if let Some(xdg) = xdg_config {
+            let xdg_trim = xdg.trim();
+            if !xdg_trim.is_empty() {
+                return PathBuf::from(xdg_trim).join("openrapoo").join("profiles.json");
+            }
+        }
+
+        // 3. Fallback to HOME/.config
+        if let Some(h) = home {
+            let h_trim = h.trim();
+            if !h_trim.is_empty() {
+                return PathBuf::from(h_trim).join(".config").join("openrapoo").join("profiles.json");
+            }
+        }
+
+        // 4. Fallback via dirs crate
         dirs::config_dir()
             .unwrap_or_else(|| PathBuf::from("~/.config"))
             .join("openrapoo")
