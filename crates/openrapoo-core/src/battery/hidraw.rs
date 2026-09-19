@@ -114,8 +114,10 @@ pub fn scan_hidraw_interfaces() -> Vec<HidrawCandidate> {
                     // Format: BUS:VENDOR:PRODUCT (e.g. 0003:000024AE:0000186A)
                     let parts: Vec<&str> = rest.split(':').collect();
                     if parts.len() >= 3 {
-                        vid = u16::from_str_radix(parts[1].trim_start_matches('0'), 16).unwrap_or(0);
-                        pid = u16::from_str_radix(parts[2].trim_start_matches('0'), 16).unwrap_or(0);
+                        vid =
+                            u16::from_str_radix(parts[1].trim_start_matches('0'), 16).unwrap_or(0);
+                        pid =
+                            u16::from_str_radix(parts[2].trim_start_matches('0'), 16).unwrap_or(0);
                     }
                 } else if let Some(rest) = line.strip_prefix("HID_NAME=") {
                     name_val = rest.trim_matches('"').to_string();
@@ -143,9 +145,8 @@ pub fn scan_hidraw_interfaces() -> Vec<HidrawCandidate> {
                 .collect();
         }
 
-        let is_vendor_interface = !vendor_pages.is_empty()
-            || report_ids.contains(&0x07)
-            || report_ids.contains(&0xA0);
+        let is_vendor_interface =
+            !vendor_pages.is_empty() || report_ids.contains(&0x07) || report_ids.contains(&0xA0);
 
         let node_num = name_str.strip_prefix("hidraw").unwrap_or("0");
         let dev_path = PathBuf::from(format!("/dev/hidraw{node_num}"));
@@ -167,7 +168,11 @@ pub fn scan_hidraw_interfaces() -> Vec<HidrawCandidate> {
 }
 
 /// Locate vendor hidraw interface candidate matching a specific VID/PID or HID_UNIQ.
-pub fn find_vendor_hidraw_candidate(vid: u16, pid: u16, uniq: Option<&str>) -> Option<HidrawCandidate> {
+pub fn find_vendor_hidraw_candidate(
+    vid: u16,
+    pid: u16,
+    uniq: Option<&str>,
+) -> Option<HidrawCandidate> {
     let candidates = scan_hidraw_interfaces();
 
     // 1. First priority: match by VID, PID, HID_UNIQ, AND vendor interface flag
@@ -186,11 +191,15 @@ pub fn find_vendor_hidraw_candidate(vid: u16, pid: u16, uniq: Option<&str>) -> O
     }
 
     // 2. Second priority: match by VID, PID, AND vendor interface flag
-    if let Some(c) = candidates.iter().find(|c| c.vendor_id == vid && (c.product_id == pid || pid == 0) && c.is_vendor_interface) {
+    if let Some(c) = candidates
+        .iter()
+        .find(|c| c.vendor_id == vid && (c.product_id == pid || pid == 0) && c.is_vendor_interface)
+    {
         return Some(c.clone());
     }
 
     // 3. Fallback: match by VID and vendor interface
-    candidates.into_iter().find(|c| c.vendor_id == vid && c.is_vendor_interface)
+    candidates
+        .into_iter()
+        .find(|c| c.vendor_id == vid && c.is_vendor_interface)
 }
-

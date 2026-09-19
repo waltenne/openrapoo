@@ -361,7 +361,9 @@ fn test_case_09_dongle_no_telemetry() {
     let status: BatteryStatus = res.chosen.into();
 
     assert_eq!(status.percentage(), None);
-    assert!(status.display_text_pt().contains("Bateria não exposta pelo dongle"));
+    assert!(status
+        .display_text_pt()
+        .contains("Bateria não exposta pelo dongle"));
 }
 
 #[test]
@@ -409,7 +411,9 @@ fn test_case_12_dock_no_telemetry() {
     let status: BatteryStatus = res.chosen.into();
 
     assert_eq!(status.percentage(), None);
-    assert!(status.display_text_pt().contains("Dock detectado, bateria não exposta"));
+    assert!(status
+        .display_text_pt()
+        .contains("Dock detectado, bateria não exposta"));
 }
 
 #[test]
@@ -667,7 +671,9 @@ fn test_bluetooth_hid_vendor_provider_skipped_for_bt() {
     let res = provider.query(&dev, &mut log);
 
     assert!(res.is_none());
-    assert!(log.iter().any(|l| l.contains("ignorado para transporte Bluetooth")));
+    assert!(log
+        .iter()
+        .any(|l| l.contains("ignorado para transporte Bluetooth")));
 }
 
 #[test]
@@ -695,7 +701,7 @@ fn test_device_match_confidence_separated_from_reading_confidence() {
 
     assert_eq!(reading.device_match_confidence, BatteryConfidence::High);
     assert_eq!(reading.reading_confidence, BatteryConfidence::Unconfirmed);
-    assert_eq!(reading.reading_valid, false);
+    assert!(!reading.reading_valid);
 }
 
 #[test]
@@ -740,13 +746,13 @@ fn test_bluez_extract_u8_value_variants() {
     use openrapoo_core::battery::bluez::extract_u8_value;
     use zbus::zvariant::{OwnedValue, Str};
 
-    let val_u8 = OwnedValue::try_from(70u8).unwrap();
+    let val_u8 = OwnedValue::from(70u8);
     assert_eq!(extract_u8_value(&val_u8), Some(70));
 
-    let val_u32 = OwnedValue::try_from(85u32).unwrap();
+    let val_u32 = OwnedValue::from(85u32);
     assert_eq!(extract_u8_value(&val_u32), Some(85));
 
-    let val_str = OwnedValue::try_from(Str::from("100")).unwrap();
+    let val_str = OwnedValue::from(Str::from("100"));
     assert_eq!(extract_u8_value(&val_str), Some(100));
 }
 
@@ -878,4 +884,3 @@ fn test_device_identity_mac_isolation() {
     // Mouse identity with no matching Battery1 or state=unknown must NOT return 80% from keyboard
     assert_ne!(status.percentage(), Some(80));
 }
-

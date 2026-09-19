@@ -1,13 +1,20 @@
 //! Standard Kernel HID battery telemetry provider.
 
-use std::fs;
-use std::path::Path;
 use super::provider::{current_epoch_seconds, BatteryProvider, DeviceIdentity};
 use super::types::{
-    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity, RawProviderData,
+    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity,
+    RawProviderData,
 };
+use std::fs;
+use std::path::Path;
 
 pub struct StandardHidProvider;
+
+impl Default for StandardHidProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl StandardHidProvider {
     pub fn new() -> Self {
@@ -67,9 +74,14 @@ impl BatteryProvider for StandardHidProvider {
             if is_match {
                 if let Ok(cap_str) = fs::read_to_string(path.join("capacity")) {
                     if let Ok(pct) = cap_str.trim().parse::<u8>() {
-                        log.push(format!("Leitura capturada via Standard HID battery em {name}: {pct}%"));
-                        let status_str = fs::read_to_string(path.join("status")).unwrap_or_default().to_lowercase();
-                        let is_charging = status_str.contains("charging") && !status_str.contains("discharging");
+                        log.push(format!(
+                            "Leitura capturada via Standard HID battery em {name}: {pct}%"
+                        ));
+                        let status_str = fs::read_to_string(path.join("status"))
+                            .unwrap_or_default()
+                            .to_lowercase();
+                        let is_charging =
+                            status_str.contains("charging") && !status_str.contains("discharging");
 
                         let raw_data = RawProviderData {
                             sysfs_path: Some(path.to_string_lossy().to_string()),
@@ -79,7 +91,11 @@ impl BatteryProvider for StandardHidProvider {
 
                         return Some(BatteryReading {
                             percentage: Some(pct.min(100)),
-                            state: if is_charging { BatteryState::Charging } else { BatteryState::Available },
+                            state: if is_charging {
+                                BatteryState::Charging
+                            } else {
+                                BatteryState::Available
+                            },
                             is_present: true,
                             charging: Some(is_charging),
                             source: BatterySource::HidStandard,
@@ -105,4 +121,3 @@ impl BatteryProvider for StandardHidProvider {
         None
     }
 }
-

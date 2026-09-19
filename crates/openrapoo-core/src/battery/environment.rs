@@ -1,8 +1,8 @@
 //! Automatic system environment inspector for telemetry and diagnostics.
 
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::process::Command;
-use serde::{Deserialize, Serialize};
 
 use super::hidraw::scan_hidraw_interfaces;
 
@@ -51,7 +51,14 @@ pub fn collect_system_environment() -> SystemEnvironment {
         .arg("--version")
         .output()
         .ok()
-        .map(|o| String::from_utf8_lossy(&o.stdout).lines().next().unwrap_or_default().trim().to_string());
+        .map(|o| {
+            String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .next()
+                .unwrap_or_default()
+                .trim()
+                .to_string()
+        });
 
     // 4. BlueZ CLI Version
     let bluez_version = Command::new("bluetoothctl")
@@ -65,8 +72,8 @@ pub fn collect_system_environment() -> SystemEnvironment {
         .or_else(|_| std::env::var("DESKTOP_SESSION"))
         .unwrap_or_else(|_| "Desconhecido".to_string());
 
-    let session_type = std::env::var("XDG_SESSION_TYPE")
-        .unwrap_or_else(|_| "x11/wayland (auto)".to_string());
+    let session_type =
+        std::env::var("XDG_SESSION_TYPE").unwrap_or_else(|_| "x11/wayland (auto)".to_string());
 
     // 6. Bluetooth controllers
     let mut bluetooth_controllers = Vec::new();
@@ -103,14 +110,25 @@ pub fn collect_system_environment() -> SystemEnvironment {
     let hidraw_candidates = scan_hidraw_interfaces();
     let hidraw_interfaces = hidraw_candidates
         .iter()
-        .map(|c| format!("{} (VID: {:04X}, PID: {:04X}, Vendor: {})", c.hidraw_path.display(), c.vendor_id, c.product_id, c.is_vendor_interface))
+        .map(|c| {
+            format!(
+                "{} (VID: {:04X}, PID: {:04X}, Vendor: {})",
+                c.hidraw_path.display(),
+                c.vendor_id,
+                c.product_id,
+                c.is_vendor_interface
+            )
+        })
         .collect();
 
     // 10. User Groups
     let mut user_groups = Vec::new();
     if let Ok(output) = Command::new("id").arg("-Gn").output() {
         let groups_str = String::from_utf8_lossy(&output.stdout);
-        user_groups = groups_str.split_whitespace().map(|s| s.to_string()).collect();
+        user_groups = groups_str
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
     }
 
     // 11. Udev Rules
@@ -143,4 +161,3 @@ pub fn collect_system_environment() -> SystemEnvironment {
         udev_rules_found,
     }
 }
-

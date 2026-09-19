@@ -29,7 +29,8 @@ pub fn get_rapoo_hidraw_nodes(candidate: Option<&Path>) -> Vec<PathBuf> {
             if let Ok(content) = std::fs::read_to_string(uevent_path) {
                 let content_lower = content.to_lowercase();
                 if content_lower.contains("24ae") || content_lower.contains("rapoo") {
-                    let node = PathBuf::from(format!("/dev/{}", entry.file_name().to_string_lossy()));
+                    let node =
+                        PathBuf::from(format!("/dev/{}", entry.file_name().to_string_lossy()));
                     if !nodes.contains(&node) {
                         nodes.push(node);
                     }
@@ -77,9 +78,9 @@ impl HardwareWriter {
         val_report[1] = 0x02; // Category: DPI Control
         val_report[2] = 0x02; // Sub-Command: Set DPI Value
         val_report[3] = target_gear;
-        val_report[4] = (dpi & 0xFF) as u8;        // DPI_X Low
+        val_report[4] = (dpi & 0xFF) as u8; // DPI_X Low
         val_report[5] = ((dpi >> 8) & 0xFF) as u8; // DPI_X High
-        val_report[6] = (dpi & 0xFF) as u8;        // DPI_Y Low
+        val_report[6] = (dpi & 0xFF) as u8; // DPI_Y Low
         val_report[7] = ((dpi >> 8) & 0xFF) as u8; // DPI_Y High
 
         let mut crc1 = 0u8;
@@ -213,7 +214,12 @@ impl HardwareWriter {
         Ok((1200, 1000))
     }
 
-    fn send_report_to_node(&self, path: &Path, base_report: &[u8; 64], report_id: u8) -> Result<()> {
+    fn send_report_to_node(
+        &self,
+        path: &Path,
+        base_report: &[u8; 64],
+        report_id: u8,
+    ) -> Result<()> {
         let mut report = *base_report;
         report[0] = report_id;
 

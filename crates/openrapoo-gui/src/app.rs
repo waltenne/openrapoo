@@ -64,7 +64,12 @@ impl Render for AppView {
         };
 
         let language = self.state.language;
-        let header = render_header(active_device, &self.state.active_profile.name, language, on_back);
+        let header = render_header(
+            active_device,
+            &self.state.active_profile.name,
+            language,
+            on_back,
+        );
 
         let body = match self.mode {
             ViewMode::DevicesList => {
@@ -119,16 +124,20 @@ impl Render for AppView {
                     });
                 };
 
-                v_flex().flex_1().w_full().overflow_hidden().child(render_devices_page(
-                    &self.state.devices,
-                    self.state.selected_device_index,
-                    language,
-                    on_highlight,
-                    on_confirm,
-                    on_prev,
-                    on_next,
-                    on_ref,
-                ))
+                v_flex()
+                    .flex_1()
+                    .w_full()
+                    .overflow_hidden()
+                    .child(render_devices_page(
+                        &self.state.devices,
+                        self.state.selected_device_index,
+                        language,
+                        on_highlight,
+                        on_confirm,
+                        on_prev,
+                        on_next,
+                        on_ref,
+                    ))
             }
             ViewMode::DeviceDetail => {
                 let Some(dev) = self.state.selected_device() else {
@@ -281,24 +290,28 @@ impl Render for AppView {
                         });
                     });
 
-                v_flex().flex_1().w_full().overflow_hidden().child(render_device_page(
-                    dev,
-                    active_tab,
-                    &active_profile,
-                    selected_hotspot_hex.as_deref(),
-                    language,
-                    on_select_tab,
-                    on_select_hotspot,
-                    on_update_action,
-                    on_reset_action,
-                    on_update_dpi,
-                    on_update_polling_rate,
-                    on_apply_hardware,
-                    on_restore_hardware,
-                    on_read_hardware,
-                    on_refresh_battery,
-                    on_open_diag_modal,
-                ))
+                v_flex()
+                    .flex_1()
+                    .w_full()
+                    .overflow_hidden()
+                    .child(render_device_page(
+                        dev,
+                        active_tab,
+                        &active_profile,
+                        selected_hotspot_hex.as_deref(),
+                        language,
+                        on_select_tab,
+                        on_select_hotspot,
+                        on_update_action,
+                        on_reset_action,
+                        on_update_dpi,
+                        on_update_polling_rate,
+                        on_apply_hardware,
+                        on_restore_hardware,
+                        on_read_hardware,
+                        on_refresh_battery,
+                        on_open_diag_modal,
+                    ))
             }
         };
 
@@ -314,8 +327,14 @@ impl Render for AppView {
             });
         };
 
-        let status_bar =
-            render_status_bar(group_ok, daemon_running, &active_profile_name, language, on_refresh, on_toggle_language);
+        let status_bar = render_status_bar(
+            group_ok,
+            daemon_running,
+            &active_profile_name,
+            language,
+            on_refresh,
+            on_toggle_language,
+        );
 
         let entity_prev = cx.entity();
         let entity_next = cx.entity();

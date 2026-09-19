@@ -11,6 +11,7 @@ use crate::i18n::{self, Language};
 pub trait DeviceUiExt {
     #[allow(dead_code)]
     fn battery_label_pt(&self) -> String;
+    #[allow(dead_code)]
     fn connection_badge_pt(&self) -> String;
     fn connection_badge(&self, lang: Language) -> String;
     #[allow(dead_code)]
@@ -41,7 +42,9 @@ impl DeviceUiExt for RapooDevice {
                 Language::English => "Charging Dock".to_string(),
                 Language::Portuguese => "Base de Carga".to_string(),
             },
-            ConnectionType::Disconnected | ConnectionType::Unknown => i18n::conn_disconnected(lang).to_string(),
+            ConnectionType::Disconnected | ConnectionType::Unknown => {
+                i18n::conn_disconnected(lang).to_string()
+            }
         }
     }
 

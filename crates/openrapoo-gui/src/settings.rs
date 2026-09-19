@@ -89,7 +89,10 @@ impl AppSettings {
     /// returns default `AppSettings` without panicking.
     pub fn load_from_file(path: &Path) -> Self {
         if !path.exists() {
-            info!("Settings file not found at {}. Using defaults.", path.display());
+            info!(
+                "Settings file not found at {}. Using defaults.",
+                path.display()
+            );
             return Self::default();
         }
 
@@ -121,7 +124,10 @@ impl AppSettings {
     pub fn save_to_file(&self, path: &Path) -> Result<(), String> {
         if let Some(parent) = path.parent() {
             if let Err(err) = fs::create_dir_all(parent) {
-                let msg = format!("Failed to create settings directory {}: {err}", parent.display());
+                let msg = format!(
+                    "Failed to create settings directory {}: {err}",
+                    parent.display()
+                );
                 warn!("{msg}");
                 return Err(msg);
             }
@@ -131,11 +137,19 @@ impl AppSettings {
         let json = serde_json::to_string_pretty(self)
             .map_err(|e| format!("Failed to serialize settings: {e}"))?;
 
-        fs::write(&tmp_path, &json)
-            .map_err(|e| format!("Failed to write temp settings file {}: {e}", tmp_path.display()))?;
+        fs::write(&tmp_path, &json).map_err(|e| {
+            format!(
+                "Failed to write temp settings file {}: {e}",
+                tmp_path.display()
+            )
+        })?;
 
-        fs::rename(&tmp_path, path)
-            .map_err(|e| format!("Failed to atomically rename settings file to {}: {e}", path.display()))?;
+        fs::rename(&tmp_path, path).map_err(|e| {
+            format!(
+                "Failed to atomically rename settings file to {}: {e}",
+                path.display()
+            )
+        })?;
 
         info!("Atomically saved app settings to {}", path.display());
         Ok(())
@@ -157,8 +171,9 @@ mod tests {
         let temp_dir = std::env::temp_dir().join("openrapoo_test_settings");
         let settings_file = temp_dir.join("settings.json");
 
-        let mut settings = AppSettings::default();
-        settings.language = "en-US".to_string();
+        let settings = AppSettings {
+            language: "en-US".to_string(),
+        };
 
         assert!(settings.save_to_file(&settings_file).is_ok());
 
@@ -182,4 +197,3 @@ mod tests {
         let _ = fs::remove_dir_all(temp_dir);
     }
 }
-

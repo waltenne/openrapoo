@@ -41,7 +41,11 @@ pub fn render_status_bar(
         i18n::daemon_inactive(language)
     };
 
-    let profile_label = format!("{}{}", i18n::profile_prefix(language), i18n::format_profile_name(active_profile_name, language));
+    let profile_label = format!(
+        "{}{}",
+        i18n::profile_prefix(language),
+        i18n::format_profile_name(active_profile_name, language)
+    );
 
     h_flex()
         .h(px(STATUS_BAR_HEIGHT))

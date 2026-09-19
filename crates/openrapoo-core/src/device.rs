@@ -365,7 +365,9 @@ pub fn detect_rapoo_devices() -> Result<Vec<RapooDevice>, OpenRapooError> {
 
     // Primary scan: Bluetooth devices via BlueZ D-Bus
     let bt_devices = detect_rapoo_via_bluez();
-    let is_bt_mouse_connected = bt_devices.iter().any(|d| d.device_type == DeviceType::Mouse);
+    let is_bt_mouse_connected = bt_devices
+        .iter()
+        .any(|d| d.device_type == DeviceType::Mouse);
 
     let mut devices = Vec::new();
 
@@ -375,7 +377,9 @@ pub fn detect_rapoo_devices() -> Result<Vec<RapooDevice>, OpenRapooError> {
             // Determine active status of physical receiver
             if dev.connection == ConnectionType::Bluetooth {
                 dev.receiver_state = ReceiverState::BluetoothConnected;
-            } else if dev.device_type == DeviceType::Keyboard || dev.connection == ConnectionType::UsbWired {
+            } else if dev.device_type == DeviceType::Keyboard
+                || dev.connection == ConnectionType::UsbWired
+            {
                 dev.receiver_state = ReceiverState::ReceiverActive;
             } else if is_bt_mouse_connected {
                 // Mouse is connected via Bluetooth — dongle is idle in ReceiverPresent state
@@ -432,7 +436,10 @@ pub fn detect_rapoo_devices() -> Result<Vec<RapooDevice>, OpenRapooError> {
         });
 
         if !already_known {
-            info!("Adicionando dispositivo Rapoo detectado via BlueZ: {}", bt_dev.name);
+            info!(
+                "Adicionando dispositivo Rapoo detectado via BlueZ: {}",
+                bt_dev.name
+            );
             devices.push(bt_dev);
         }
     }
@@ -728,7 +735,11 @@ fn classify_device_type(name: &str, pid: u16) -> DeviceType {
         return DeviceType::Keyboard;
     }
     let lower = name.to_lowercase();
-    if lower.contains("keyboard") || lower.contains("teclado") || lower.contains("e9050") || lower.contains("kbd") {
+    if lower.contains("keyboard")
+        || lower.contains("teclado")
+        || lower.contains("e9050")
+        || lower.contains("kbd")
+    {
         DeviceType::Keyboard
     } else {
         DeviceType::Mouse
@@ -766,18 +777,25 @@ fn guess_connection_type(
     if bus_type == 0x0003 || phys_str.contains("usb-") || phys_str.starts_with("usb") {
         if lower_name.contains("composite device")
             || product_id == crate::known_pids::MT760_PRO_WIRED
-            || (product_id == crate::known_pids::MT760_PRO_BT && lower_name.contains("composite device"))
+            || (product_id == crate::known_pids::MT760_PRO_BT
+                && lower_name.contains("composite device"))
         {
             return ConnectionType::UsbCable;
         }
-        if product_id == crate::known_pids::MT760_PRO_NEARLINK || product_id == crate::known_pids::E9050L_24G {
+        if product_id == crate::known_pids::MT760_PRO_NEARLINK
+            || product_id == crate::known_pids::E9050L_24G
+        {
             return ConnectionType::TwoPointFourGhz;
         }
         return ConnectionType::UsbCable;
     }
 
     // 2. Bluetooth Connection (Bus 0005 or Phys contains bluetooth/hci)
-    if bus_type == 0x0005 || phys_str.contains("bluetooth") || phys_str.contains("hci") || lower_name.contains("bt mouse") {
+    if bus_type == 0x0005
+        || phys_str.contains("bluetooth")
+        || phys_str.contains("hci")
+        || lower_name.contains("bt mouse")
+    {
         return ConnectionType::Bluetooth;
     }
 
@@ -874,11 +892,7 @@ fn detect_rapoo_via_bluez() -> Vec<RapooDevice> {
             Some(format!("bluetooth/hci0/dev_{mac_underscored}"))
         } else if !native_path.is_empty() {
             // native-path looks like /org/bluez/hci1/dev_DE_ED_DC_41_7C_51
-            let mac_part = native_path
-                .split("/dev_")
-                .nth(1)
-                .unwrap_or("")
-                .to_string();
+            let mac_part = native_path.split("/dev_").nth(1).unwrap_or("").to_string();
             if !mac_part.is_empty() {
                 Some(format!("bluetooth/hci0/dev_{mac_part}"))
             } else {

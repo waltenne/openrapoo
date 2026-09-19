@@ -13,7 +13,9 @@ mod theme;
 mod ui;
 
 use app::AppView;
-use gpui::{px, AppContext, Bounds, SharedString, Size, TitlebarOptions, WindowBounds, WindowOptions};
+use gpui::{
+    px, AppContext, Bounds, SharedString, Size, TitlebarOptions, WindowBounds, WindowOptions,
+};
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 

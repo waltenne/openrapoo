@@ -24,7 +24,9 @@ impl Language {
 
         if locale.starts_with("pt") {
             Language::Portuguese
-        } else if !locale.is_empty() && (locale.starts_with("en") || locale != "c" && locale != "posix") {
+        } else if !locale.is_empty()
+            && (locale.starts_with("en") || locale != "c" && locale != "posix")
+        {
             Language::English
         } else {
             Language::Portuguese
@@ -255,7 +257,9 @@ pub fn pointer_page_title(lang: Language) -> &'static str {
 pub fn pointer_page_subtitle(lang: Language) -> &'static str {
     match lang {
         Language::English => "Adjust sensitivity (DPI) and polling rate for your mouse.",
-        Language::Portuguese => "Ajuste a sensibilidade (DPI) e taxa de resposta (Polling Rate) do mouse.",
+        Language::Portuguese => {
+            "Ajuste a sensibilidade (DPI) e taxa de resposta (Polling Rate) do mouse."
+        }
     }
 }
 
@@ -315,7 +319,9 @@ pub fn button_mapping_title(lang: Language) -> &'static str {
 pub fn button_mapping_subtitle(lang: Language) -> &'static str {
     match lang {
         Language::English => "Select a button on the image or list to customize its action.",
-        Language::Portuguese => "Selecione um botão na imagem ou na lista para personalizar sua ação.",
+        Language::Portuguese => {
+            "Selecione um botão na imagem ou na lista para personalizar sua ação."
+        }
     }
 }
 
@@ -383,7 +389,9 @@ pub fn disconnected_title(lang: Language) -> &'static str {
 pub fn disconnected_desc(lang: Language) -> &'static str {
     match lang {
         Language::English => "The selected mouse or keyboard was not detected on the system bus.",
-        Language::Portuguese => "O mouse ou teclado selecionado não foi detectado no barramento do sistema.",
+        Language::Portuguese => {
+            "O mouse ou teclado selecionado não foi detectado no barramento do sistema."
+        }
     }
 }
 
@@ -438,11 +446,23 @@ mod tests {
     fn test_translations_coverage() {
         assert_eq!(back_to_devices(Language::English), "‹ Devices");
         assert_eq!(back_to_devices(Language::Portuguese), "‹ Dispositivos");
-        assert_eq!(no_device_title(Language::English), "No Rapoo Devices Detected");
-        assert_eq!(no_device_title(Language::Portuguese), "Nenhum Dispositivo Rapoo Detectado");
+        assert_eq!(
+            no_device_title(Language::English),
+            "No Rapoo Devices Detected"
+        );
+        assert_eq!(
+            no_device_title(Language::Portuguese),
+            "Nenhum Dispositivo Rapoo Detectado"
+        );
         assert_eq!(apply_to_mouse(Language::English), "⚡ Apply to Mouse");
         assert_eq!(apply_to_mouse(Language::Portuguese), "⚡ Aplicar ao Mouse");
-        assert_eq!(connected_devices_count(Language::English, 2), "Connected Devices (2)");
-        assert_eq!(connected_devices_count(Language::Portuguese, 2), "Dispositivos Conectados (2)");
+        assert_eq!(
+            connected_devices_count(Language::English, 2),
+            "Connected Devices (2)"
+        );
+        assert_eq!(
+            connected_devices_count(Language::Portuguese, 2),
+            "Dispositivos Conectados (2)"
+        );
     }
 }

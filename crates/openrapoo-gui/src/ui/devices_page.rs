@@ -34,11 +34,7 @@ pub fn render_devices_page(
             .justify_center()
             .gap_4()
             .p_8()
-            .child(
-                div()
-                    .text_size(px(48.0))
-                    .child("🖱️"),
-            )
+            .child(div().text_size(px(48.0)).child("🖱️"))
             .child(
                 div()
                     .text_size(px(20.0))
@@ -81,20 +77,15 @@ pub fn render_devices_page(
         vec![sel_idx, next_idx]
     };
 
-    let mut carousel_items = h_flex()
-        .gap_6()
-        .justify_center()
-        .items_center()
-        .py_2();
+    let mut carousel_items = h_flex().gap_6().justify_center().items_center().py_2();
 
     for &idx in &visible_indices {
         let dev = &devices[idx];
         let is_sel = selected_index == Some(idx);
         let cb_hl = on_highlight_device.clone();
         let cb_cf = on_confirm_device.clone();
-        carousel_items = carousel_items.child(render_device_card(
-            idx, dev, is_sel, language, cb_hl, cb_cf,
-        ));
+        carousel_items =
+            carousel_items.child(render_device_card(idx, dev, is_sel, language, cb_hl, cb_cf));
     }
 
     let cb_prev_btn = on_prev_device.clone();

@@ -65,6 +65,7 @@ impl ControlCategory {
         }
     }
 
+    #[allow(dead_code)]
     pub fn label_pt(&self) -> &'static str {
         self.label(Language::Portuguese)
     }

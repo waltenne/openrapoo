@@ -6,10 +6,17 @@ use zbus::zvariant::OwnedValue;
 
 use super::provider::{current_epoch_seconds, BatteryProvider, DeviceIdentity};
 use super::types::{
-    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity, RawProviderData,
+    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity,
+    RawProviderData,
 };
 
 pub struct BluezGattProvider;
+
+impl Default for BluezGattProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl BluezGattProvider {
     pub fn new() -> Self {
@@ -52,7 +59,8 @@ impl BatteryProvider for BluezGattProvider {
             Err(_) => return None,
         };
 
-        type ManagedObjects = HashMap<zbus::zvariant::OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
+        type ManagedObjects =
+            HashMap<zbus::zvariant::OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
         let objects: ManagedObjects = match manager_proxy.call("GetManagedObjects", &()) {
             Ok(objs) => objs,
             Err(_) => return None,
@@ -89,7 +97,9 @@ impl BatteryProvider for BluezGattProvider {
                     continue;
                 }
 
-                log.push(format!("Característica GATT Battery Level (0x2A19) encontrada em '{path_str}'"));
+                log.push(format!(
+                    "Característica GATT Battery Level (0x2A19) encontrada em '{path_str}'"
+                ));
 
                 let char_proxy = match Proxy::new(
                     &conn,
@@ -105,7 +115,9 @@ impl BatteryProvider for BluezGattProvider {
                 let bytes: Vec<u8> = match char_proxy.call("ReadValue", &(empty_options,)) {
                     Ok(b) => b,
                     Err(e) => {
-                        log.push(format!("Leitura GATT ReadValue falhou em '{path_str}': {e}"));
+                        log.push(format!(
+                            "Leitura GATT ReadValue falhou em '{path_str}': {e}"
+                        ));
                         continue;
                     }
                 };

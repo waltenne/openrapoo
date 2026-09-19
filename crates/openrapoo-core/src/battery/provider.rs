@@ -1,8 +1,8 @@
 //! Trait and identity types for battery providers.
 
-use std::path::PathBuf;
-use crate::device::{ConnectionType, DeviceType};
 use super::types::{BatteryReading, BatterySource};
+use crate::device::{ConnectionType, DeviceType};
+use std::path::PathBuf;
 
 /// Identity information passed to battery providers for matching devices.
 #[derive(Debug, Clone, Default)]
@@ -44,7 +44,10 @@ impl DeviceIdentity {
             if name_lower.contains("composite device") || name_lower.contains("wired") {
                 return ConnectionType::UsbCable;
             }
-            if name_lower.contains("nearlink") || name_lower.contains("dongle") || name_lower.contains("2.4g") {
+            if name_lower.contains("nearlink")
+                || name_lower.contains("dongle")
+                || name_lower.contains("2.4g")
+            {
                 return ConnectionType::TwoPointFourGhz;
             }
         }
@@ -78,4 +81,3 @@ pub fn current_epoch_seconds() -> u64 {
         .map(|d| d.as_secs())
         .unwrap_or(0)
 }
-

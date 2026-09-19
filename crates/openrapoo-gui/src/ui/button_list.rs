@@ -86,15 +86,69 @@ pub fn render_button_list(
             let is_custom_mapped = !matches!(action, ButtonAction::PassThrough);
 
             let action_label = match &action {
-                ButtonAction::PassThrough => if is_en { "System Default".to_string() } else { "Padrão do Sistema".to_string() },
-                ButtonAction::Key { key } => if is_en { format!("Key: {key}") } else { format!("Tecla: {key}") },
-                ButtonAction::KeyCombo { keys } => if is_en { format!("Shortcut: {}", keys.join("+")) } else { format!("Atalho: {}", keys.join("+")) },
-                ButtonAction::RunCommand { argv } => if is_en { format!("Command: {}", argv.join(" ")) } else { format!("Comando: {}", argv.join(" ")) },
-                ButtonAction::Copy => if is_en { "Copy (Ctrl+C)".to_string() } else { "Copiar (Ctrl+C)".to_string() },
-                ButtonAction::Paste => if is_en { "Paste (Ctrl+V)".to_string() } else { "Colar (Ctrl+V)".to_string() },
-                ButtonAction::OpenTerminal => if is_en { "Open Terminal".to_string() } else { "Abrir Terminal".to_string() },
-                ButtonAction::CloseWindow => if is_en { "Close Window".to_string() } else { "Fechar Janela".to_string() },
-                ButtonAction::Disabled => if is_en { "Disabled".to_string() } else { "Desativado".to_string() },
+                ButtonAction::PassThrough => {
+                    if is_en {
+                        "System Default".to_string()
+                    } else {
+                        "Padrão do Sistema".to_string()
+                    }
+                }
+                ButtonAction::Key { key } => {
+                    if is_en {
+                        format!("Key: {key}")
+                    } else {
+                        format!("Tecla: {key}")
+                    }
+                }
+                ButtonAction::KeyCombo { keys } => {
+                    if is_en {
+                        format!("Shortcut: {}", keys.join("+"))
+                    } else {
+                        format!("Atalho: {}", keys.join("+"))
+                    }
+                }
+                ButtonAction::RunCommand { argv } => {
+                    if is_en {
+                        format!("Command: {}", argv.join(" "))
+                    } else {
+                        format!("Comando: {}", argv.join(" "))
+                    }
+                }
+                ButtonAction::Copy => {
+                    if is_en {
+                        "Copy (Ctrl+C)".to_string()
+                    } else {
+                        "Copiar (Ctrl+C)".to_string()
+                    }
+                }
+                ButtonAction::Paste => {
+                    if is_en {
+                        "Paste (Ctrl+V)".to_string()
+                    } else {
+                        "Colar (Ctrl+V)".to_string()
+                    }
+                }
+                ButtonAction::OpenTerminal => {
+                    if is_en {
+                        "Open Terminal".to_string()
+                    } else {
+                        "Abrir Terminal".to_string()
+                    }
+                }
+                ButtonAction::CloseWindow => {
+                    if is_en {
+                        "Close Window".to_string()
+                    } else {
+                        "Fechar Janela".to_string()
+                    }
+                }
+                ButtonAction::Disabled => {
+                    if is_en {
+                        "Disabled".to_string()
+                    } else {
+                        "Desativado".to_string()
+                    }
+                }
                 _ => format!("{action:?}"),
             };
 
@@ -168,7 +222,11 @@ pub fn render_button_list(
                                         .child(if is_supported {
                                             action_label
                                         } else {
-                                            if is_en { "Not detected in current mode".to_string() } else { "Não detectado no modo atual".to_string() }
+                                            if is_en {
+                                                "Not detected in current mode".to_string()
+                                            } else {
+                                                "Não detectado no modo atual".to_string()
+                                            }
                                         }),
                                 ),
                         ),

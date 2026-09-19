@@ -60,7 +60,10 @@ fn test_bluetooth_connected_and_dongle_without_mouse_returns_bt_only() {
 
     // Must return exactly 1 device (the Bluetooth connected mouse)
     assert_eq!(active_logical_devices.len(), 1);
-    assert_eq!(active_logical_devices[0].connection, ConnectionType::Bluetooth);
+    assert_eq!(
+        active_logical_devices[0].connection,
+        ConnectionType::Bluetooth
+    );
 }
 
 #[test]
@@ -83,7 +86,10 @@ fn test_only_bluetooth_connected() {
     };
 
     let devices = vec![bt_mouse];
-    let active: Vec<_> = devices.into_iter().filter(|d| d.receiver_state != ReceiverState::ReceiverPresent).collect();
+    let active: Vec<_> = devices
+        .into_iter()
+        .filter(|d| d.receiver_state != ReceiverState::ReceiverPresent)
+        .collect();
     assert_eq!(active.len(), 1);
 }
 
@@ -107,7 +113,10 @@ fn test_only_dongle_connected_with_mouse_active() {
     };
 
     let devices = vec![active_mouse];
-    let active: Vec<_> = devices.into_iter().filter(|d| d.receiver_state != ReceiverState::ReceiverPresent).collect();
+    let active: Vec<_> = devices
+        .into_iter()
+        .filter(|d| d.receiver_state != ReceiverState::ReceiverPresent)
+        .collect();
     assert_eq!(active.len(), 1);
     assert_eq!(active[0].connection, ConnectionType::TwoPointFourGhz);
 }
@@ -132,7 +141,10 @@ fn test_only_dongle_connected_without_mouse_idle() {
     };
 
     let devices = vec![idle_dongle];
-    let active: Vec<_> = devices.into_iter().filter(|d| d.receiver_state != ReceiverState::ReceiverPresent).collect();
+    let active: Vec<_> = devices
+        .into_iter()
+        .filter(|d| d.receiver_state != ReceiverState::ReceiverPresent)
+        .collect();
     assert_eq!(active.len(), 0);
 }
 
@@ -173,7 +185,10 @@ fn test_two_rapoo_devices_keyboard_and_mouse() {
     };
 
     let devices = vec![kbd, mouse];
-    let active: Vec<_> = devices.into_iter().filter(|d| d.receiver_state != ReceiverState::ReceiverPresent).collect();
+    let active: Vec<_> = devices
+        .into_iter()
+        .filter(|d| d.receiver_state != ReceiverState::ReceiverPresent)
+        .collect();
     assert_eq!(active.len(), 2);
 }
 
@@ -239,5 +254,3 @@ fn test_usb_cable_connected_mouse_priority() {
     assert_eq!(wired_mouse.connection, ConnectionType::UsbCable);
     assert_eq!(wired_mouse.connection.to_string(), "USB por cabo");
 }
-
-

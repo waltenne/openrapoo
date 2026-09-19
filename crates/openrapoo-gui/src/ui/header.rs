@@ -49,17 +49,13 @@ pub fn render_header(
             div().text_size(px(18.0)).child("⚡")
         };
 
-        h_flex()
-            .gap_2()
-            .items_center()
-            .child(logo_element)
-            .child(
-                div()
-                    .text_size(px(15.0))
-                    .font_weight(gpui::FontWeight::BOLD)
-                    .text_color(theme.text_primary)
-                    .child("OpenRapoo"),
-            )
+        h_flex().gap_2().items_center().child(logo_element).child(
+            div()
+                .text_size(px(15.0))
+                .font_weight(gpui::FontWeight::BOLD)
+                .text_color(theme.text_primary)
+                .child("OpenRapoo"),
+        )
     };
 
     let center_section = if let Some(dev) = device {
@@ -71,7 +67,11 @@ pub fn render_header(
         let conn_badge = dev.connection_badge(language);
 
         let battery_element = match &dev.battery_status {
-            BatteryStatus::Available { percentage, charging, .. } => {
+            BatteryStatus::Available {
+                percentage,
+                charging,
+                ..
+            } => {
                 let text = if *charging {
                     format!("{percentage}% ⚡")
                 } else {
@@ -89,7 +89,10 @@ pub fn render_header(
                         .child(text),
                 )
             }
-            BatteryStatus::Charging { percentage: Some(pct), .. } => Some(
+            BatteryStatus::Charging {
+                percentage: Some(pct),
+                ..
+            } => Some(
                 div()
                     .px_2()
                     .py_0p5()
@@ -149,7 +152,11 @@ pub fn render_header(
                 .text_color(theme.accent_blue)
                 .text_size(px(11.0))
                 .font_weight(gpui::FontWeight::SEMIBOLD)
-                .child(format!("{}{}", i18n::profile_prefix(language), i18n::format_profile_name(active_profile_name, language))),
+                .child(format!(
+                    "{}{}",
+                    i18n::profile_prefix(language),
+                    i18n::format_profile_name(active_profile_name, language)
+                )),
         );
 
         center

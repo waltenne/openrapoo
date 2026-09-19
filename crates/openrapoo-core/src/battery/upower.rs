@@ -5,10 +5,17 @@ use zbus::zvariant::OwnedObjectPath;
 
 use super::provider::{current_epoch_seconds, BatteryProvider, DeviceIdentity};
 use super::types::{
-    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity, RawProviderData,
+    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity,
+    RawProviderData,
 };
 
 pub struct UPowerProvider;
+
+impl Default for UPowerProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl UPowerProvider {
     pub fn new() -> Self {
@@ -52,7 +59,9 @@ impl BatteryProvider for UPowerProvider {
         ) {
             Ok(p) => p,
             Err(e) => {
-                log.push(format!("Falha ao criar proxy para org.freedesktop.UPower: {e}"));
+                log.push(format!(
+                    "Falha ao criar proxy para org.freedesktop.UPower: {e}"
+                ));
                 return None;
             }
         };
@@ -65,7 +74,10 @@ impl BatteryProvider for UPowerProvider {
             }
         };
 
-        log.push(format!("Dispositivos UPower enumerados: {}", device_paths.len()));
+        log.push(format!(
+            "Dispositivos UPower enumerados: {}",
+            device_paths.len()
+        ));
 
         for dev_path in device_paths {
             let path_str = dev_path.as_str();
@@ -91,7 +103,9 @@ impl BatteryProvider for UPowerProvider {
 
             let is_present: bool = dev_proxy.get_property("IsPresent").unwrap_or(false);
             if !is_present {
-                log.push(format!("Dispositivo UPower '{path_str}' ignorado: IsPresent=false"));
+                log.push(format!(
+                    "Dispositivo UPower '{path_str}' ignorado: IsPresent=false"
+                ));
                 continue;
             }
 
@@ -105,12 +119,25 @@ impl BatteryProvider for UPowerProvider {
             let raw_pct: f64 = dev_proxy.get_property("Percentage").unwrap_or(-1.0);
 
             // Match device to identity
-            if !is_upower_device_match(device, &model, &serial, &native_path, path_str, dev_type_code) {
-                log.push(format!("Objeto UPower '{path_str}' descartado para '{}' (Model: '{model}')", device.name));
+            if !is_upower_device_match(
+                device,
+                &model,
+                &serial,
+                &native_path,
+                path_str,
+                dev_type_code,
+            ) {
+                log.push(format!(
+                    "Objeto UPower '{path_str}' descartado para '{}' (Model: '{model}')",
+                    device.name
+                ));
                 continue;
             }
 
-            log.push(format!("Dispositivo UPower correspondido para '{}': {path_str}", device.name));
+            log.push(format!(
+                "Dispositivo UPower correspondido para '{}': {path_str}",
+                device.name
+            ));
 
             // Determine percentage
             let percentage_opt = if raw_pct >= 0.0 {
@@ -147,7 +174,10 @@ impl BatteryProvider for UPowerProvider {
                     reading_valid: false,
                     is_stale,
                     validity: BatteryValidity::ZeroUnconfirmed,
-                    invalidation_reason: Some("Leitura de 0% não confirmada pelo UPower/BlueZ (estado desconhecido)".to_string()),
+                    invalidation_reason: Some(
+                        "Leitura de 0% não confirmada pelo UPower/BlueZ (estado desconhecido)"
+                            .to_string(),
+                    ),
                     alternative_source: None,
                     conflict_status: None,
                     raw_data: Some(RawProviderData {
@@ -164,7 +194,9 @@ impl BatteryProvider for UPowerProvider {
                 let _is_discharging = state_code == 2 || state_code == 3;
 
                 let validity = if is_stale {
-                    BatteryValidity::StaleReading { age_seconds: now - update_time }
+                    BatteryValidity::StaleReading {
+                        age_seconds: now - update_time,
+                    }
                 } else {
                     BatteryValidity::Valid
                 };
@@ -195,7 +227,11 @@ impl BatteryProvider for UPowerProvider {
 
                 let raw_data = RawProviderData {
                     upower_path: Some(path_str.to_string()),
-                    bluetooth_address: if serial.contains(':') { Some(serial.clone()) } else { None },
+                    bluetooth_address: if serial.contains(':') {
+                        Some(serial.clone())
+                    } else {
+                        None
+                    },
                     model: Some(model),
                     serial: Some(serial),
                     ..Default::default()
@@ -248,7 +284,16 @@ fn is_upower_device_match(
     let serial_clean = serial.replace([':', '_', '-'], "").to_lowercase();
 
     // Check vendor exclusion
-    for ex in ["logitech", "razer", "corsair", "apple", "steelseries", "dell", "hp", "lenovo"] {
+    for ex in [
+        "logitech",
+        "razer",
+        "corsair",
+        "apple",
+        "steelseries",
+        "dell",
+        "hp",
+        "lenovo",
+    ] {
         if mod_lower.contains(ex) || native_lower.contains(ex) {
             return false;
         }
@@ -256,20 +301,24 @@ fn is_upower_device_match(
 
     // Strict DeviceType exclusion
     if device.device_type == DeviceType::Mouse {
-        if dev_type_code == 6 || mod_lower.contains("keyboard") || path_lower.contains("keyboard_dev") {
+        if dev_type_code == 6
+            || mod_lower.contains("keyboard")
+            || path_lower.contains("keyboard_dev")
+        {
             return false;
         }
-    } else if device.device_type == DeviceType::Keyboard {
-        if dev_type_code == 5 || mod_lower.contains("mouse") || path_lower.contains("mouse_dev") {
-            return false;
-        }
+    } else if device.device_type == DeviceType::Keyboard
+        && (dev_type_code == 5 || mod_lower.contains("mouse") || path_lower.contains("mouse_dev"))
+    {
+        return false;
     }
 
     // Strict MAC address matching if target has bluetooth_address
     if let Some(ref target_bt) = device.bluetooth_address {
         let target_clean = target_bt.replace([':', '_', '-'], "").to_lowercase();
         if !target_clean.is_empty() {
-            let matches_mac = combined_clean.contains(&target_clean) || serial_clean.contains(&target_clean);
+            let matches_mac =
+                combined_clean.contains(&target_clean) || serial_clean.contains(&target_clean);
             if matches_mac {
                 return true;
             } else {
@@ -282,7 +331,10 @@ fn is_upower_device_match(
     // Match by physical path / phys
     if let Some(ref phys) = device.phys {
         let p_clean = phys.to_lowercase().replace([':', '_', '-'], "");
-        if !p_clean.is_empty() && (combined_clean.contains(&p_clean) || (!serial_clean.is_empty() && p_clean.contains(&serial_clean))) {
+        if !p_clean.is_empty()
+            && (combined_clean.contains(&p_clean)
+                || (!serial_clean.is_empty() && p_clean.contains(&serial_clean)))
+        {
             return true;
         }
     }

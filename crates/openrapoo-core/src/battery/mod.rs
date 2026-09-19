@@ -119,4 +119,3 @@ pub fn query_rapoo_hidraw_battery(
     let provider = RapooVendorHidProvider::new();
     provider.query(&identity, log).map(|r| r.into())
 }
-

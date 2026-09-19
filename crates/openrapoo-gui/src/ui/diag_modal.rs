@@ -1,6 +1,6 @@
 //! Modal Popup component for viewing, copying, and exporting Diagnostic Reports.
 
-use crate::i18n::{self, Language};
+use crate::i18n::Language;
 use crate::theme::current_theme;
 use gpui::{
     div, px, InteractiveElement, IntoElement, ParentElement, StatefulInteractiveElement, Styled,
@@ -71,7 +71,11 @@ pub fn render_diag_modal(
                                         .text_size(px(15.0))
                                         .font_weight(gpui::FontWeight::BOLD)
                                         .text_color(theme.text_primary)
-                                        .child(if is_en { "Technical Diagnostic Report" } else { "Relatório Técnico de Diagnóstico" }),
+                                        .child(if is_en {
+                                            "Technical Diagnostic Report"
+                                        } else {
+                                            "Relatório Técnico de Diagnóstico"
+                                        }),
                                 ),
                         )
                         .child(
@@ -158,7 +162,11 @@ pub fn render_diag_modal(
                                             .on_click(move |_, _, cx| {
                                                 cb_copy(text_copy.clone(), cx)
                                             })
-                                            .child(if is_en { "📋 Copy Content" } else { "📋 Copiar Conteúdo" }),
+                                            .child(if is_en {
+                                                "📋 Copy Content"
+                                            } else {
+                                                "📋 Copiar Conteúdo"
+                                            }),
                                     )
                                     .child(
                                         div()
@@ -177,7 +185,11 @@ pub fn render_diag_modal(
                                             .on_click(move |_, _, cx| {
                                                 cb_export(text_export.clone(), cx)
                                             })
-                                            .child(if is_en { "💾 Export File (.md)" } else { "💾 Exportar Arquivo (.md)" }),
+                                            .child(if is_en {
+                                                "💾 Export File (.md)"
+                                            } else {
+                                                "💾 Exportar Arquivo (.md)"
+                                            }),
                                     ),
                             ),
                         ),

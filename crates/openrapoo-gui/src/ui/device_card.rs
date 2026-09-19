@@ -118,15 +118,24 @@ pub fn render_device_card(
     };
 
     let battery_label = match &device.battery_status {
-        BatteryStatus::Available { percentage, charging, .. } => {
+        BatteryStatus::Available {
+            percentage,
+            charging,
+            ..
+        } => {
             if *charging {
                 format!("Bateria: {percentage}% (Carregando ⚡)")
             } else {
                 format!("Bateria: {percentage}%")
             }
         }
-        BatteryStatus::Charging { percentage: Some(pct), .. } => format!("Bateria: {pct}% (Carregando ⚡)"),
-        BatteryStatus::Charging { percentage: None, .. } => "Bateria: Carregando ⚡".to_string(),
+        BatteryStatus::Charging {
+            percentage: Some(pct),
+            ..
+        } => format!("Bateria: {pct}% (Carregando ⚡)"),
+        BatteryStatus::Charging {
+            percentage: None, ..
+        } => "Bateria: Carregando ⚡".to_string(),
         BatteryStatus::Full => "Bateria: 100% (Completa) 🟢".to_string(),
         BatteryStatus::Discharging { percentage } => format!("Bateria: {percentage}%"),
         _ => "Bateria: Indisponível".to_string(),
@@ -206,11 +215,18 @@ pub fn render_device_card(
                     div()
                         .w_full()
                         .text_size(px(12.0))
-                        .text_color(if matches!(device.battery_status, BatteryStatus::Available { .. } | BatteryStatus::Full | BatteryStatus::Charging { .. }) {
-                            theme.text_primary
-                        } else {
-                            theme.text_muted
-                        })
+                        .text_color(
+                            if matches!(
+                                device.battery_status,
+                                BatteryStatus::Available { .. }
+                                    | BatteryStatus::Full
+                                    | BatteryStatus::Charging { .. }
+                            ) {
+                                theme.text_primary
+                            } else {
+                                theme.text_muted
+                            },
+                        )
                         .truncate()
                         .child(battery_label),
                 ),

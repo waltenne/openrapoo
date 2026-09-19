@@ -45,14 +45,23 @@ impl BatteryDiagnosticReport {
         md.push_str("# 🔋 Relatório Técnico de Diagnóstico de Bateria — OpenRapoo\n\n");
         md.push_str(&format!("- **Dispositivo Target**: {}\n", self.device_name));
         md.push_str(&format!("- **Data/Hora**: Unix Epoch {}\n", self.timestamp));
-        md.push_str(&format!("- **Transporte Ativo**: {}\n", self.chosen_reading.connection));
-        md.push_str(&format!("- **Fonte Encontrada**: {}\n", self.chosen_reading.source));
+        md.push_str(&format!(
+            "- **Transporte Ativo**: {}\n",
+            self.chosen_reading.connection
+        ));
+        md.push_str(&format!(
+            "- **Fonte Encontrada**: {}\n",
+            self.chosen_reading.source
+        ));
         md.push_str(&format!(
             "- **Confiança da Associação**: {}\n",
             self.chosen_reading.device_match_confidence
         ));
         md.push_str(&format!("- **Percentual Bruto**: {}\n", pct_raw));
-        md.push_str(&format!("- **Validação do Percentual**: {}\n", validation_str));
+        md.push_str(&format!(
+            "- **Validação do Percentual**: {}\n",
+            validation_str
+        ));
         md.push_str(&format!(
             "- **Confiança da Leitura**: {}\n",
             self.chosen_reading.reading_confidence
@@ -67,19 +76,46 @@ impl BatteryDiagnosticReport {
 
         md.push_str("---\n\n");
         md.push_str("## 🖥️ 1. Ambiente do Sistema e Hardware\n\n");
-        md.push_str(&format!("- **Distribuição**: {}\n", self.environment.distro));
-        md.push_str(&format!("- **Kernel**: {}\n", self.environment.kernel_version));
-        md.push_str(&format!("- **Ambiente Gráfico**: {} ({})\n", self.environment.desktop_environment, self.environment.session_type));
-        md.push_str(&format!("- **UPower Versão**: {}\n", self.environment.upower_version.as_deref().unwrap_or("Não disponível")));
-        md.push_str(&format!("- **BlueZ Versão**: {}\n", self.environment.bluez_version.as_deref().unwrap_or("Não disponível")));
-        md.push_str(&format!("- **Controladores Bluetooth**: {:?}\n", self.environment.bluetooth_controllers));
-        md.push_str(&format!("- **Grupos do Usuário**: {:?}\n\n", self.environment.user_groups));
+        md.push_str(&format!(
+            "- **Distribuição**: {}\n",
+            self.environment.distro
+        ));
+        md.push_str(&format!(
+            "- **Kernel**: {}\n",
+            self.environment.kernel_version
+        ));
+        md.push_str(&format!(
+            "- **Ambiente Gráfico**: {} ({})\n",
+            self.environment.desktop_environment, self.environment.session_type
+        ));
+        md.push_str(&format!(
+            "- **UPower Versão**: {}\n",
+            self.environment
+                .upower_version
+                .as_deref()
+                .unwrap_or("Não disponível")
+        ));
+        md.push_str(&format!(
+            "- **BlueZ Versão**: {}\n",
+            self.environment
+                .bluez_version
+                .as_deref()
+                .unwrap_or("Não disponível")
+        ));
+        md.push_str(&format!(
+            "- **Controladores Bluetooth**: {:?}\n",
+            self.environment.bluetooth_controllers
+        ));
+        md.push_str(&format!(
+            "- **Grupos do Usuário**: {:?}\n\n",
+            self.environment.user_groups
+        ));
 
         md.push_str("### Dispositivos HID e Interfaces Detectadas\n");
         for hid in &self.environment.hidraw_interfaces {
             md.push_str(&format!("- {}\n", hid));
         }
-        md.push_str("\n");
+        md.push('\n');
 
         md.push_str("---\n\n");
         md.push_str("## 🔍 2. Provedores Consultados e Validação Cruzada\n\n");
@@ -88,23 +124,39 @@ impl BatteryDiagnosticReport {
             md.push_str("> [!WARNING]\n> Nenhuma leitura válida foi obtida de provedores primários ou secundários.\n\n");
         } else {
             for r in &self.all_readings {
-                let pct_str = r.percentage.map(|p| format!("{p}%")).unwrap_or_else(|| "N/A".to_string());
-                md.push_str(&format!("- **{}**: {} | Confiança: {} | Conexão: {}\n", r.source, pct_str, r.confidence, r.connection));
+                let pct_str = r
+                    .percentage
+                    .map(|p| format!("{p}%"))
+                    .unwrap_or_else(|| "N/A".to_string());
+                md.push_str(&format!(
+                    "- **{}**: {} | Confiança: {} | Conexão: {}\n",
+                    r.source, pct_str, r.confidence, r.connection
+                ));
             }
-            md.push_str("\n");
+            md.push('\n');
         }
 
         if !self.discarded_readings.is_empty() {
             md.push_str("### Leituras Descartadas ou Invalidadas\n\n");
             for (r, reason) in &self.discarded_readings {
-                md.push_str(&format!("- **{}**: {}\n  - *Motivo*: {}\n", r.source, r.percentage.map(|p| format!("{p}%")).unwrap_or_else(|| "N/A".to_string()), reason));
+                md.push_str(&format!(
+                    "- **{}**: {}\n  - *Motivo*: {}\n",
+                    r.source,
+                    r.percentage
+                        .map(|p| format!("{p}%"))
+                        .unwrap_or_else(|| "N/A".to_string()),
+                    reason
+                ));
             }
-            md.push_str("\n");
+            md.push('\n');
         }
 
         if let Some(ref conflict) = self.chosen_reading.conflict_status {
             md.push_str("> [!CAUTION]\n");
-            md.push_str(&format!("> **Conflito entre Fontes Detectado**: Fonte {} ({}%) vs Fonte {} ({}%)\n", conflict.source_a, conflict.value_a, conflict.source_b, conflict.value_b));
+            md.push_str(&format!(
+                "> **Conflito entre Fontes Detectado**: Fonte {} ({}%) vs Fonte {} ({}%)\n",
+                conflict.source_a, conflict.value_a, conflict.source_b, conflict.value_b
+            ));
             md.push_str("> A aplicação exibiu a leitura como não confirmada para evitar apresentar dados incorretos ao usuário.\n\n");
         }
 
@@ -113,7 +165,7 @@ impl BatteryDiagnosticReport {
         md.push_str("```text\n");
         for line in &self.diagnostic_log {
             md.push_str(line);
-            md.push_str("\n");
+            md.push('\n');
         }
         md.push_str("```\n\n");
 
@@ -158,7 +210,14 @@ pub fn generate_battery_diagnostic_report(
         phys_path: phys.map(|s| s.to_string()),
         hidraw_path: hidraw_path.map(|p| p.to_string_lossy().to_string()),
         environment: env,
-        consulted_sources: vec!["BlueZ D-Bus".into(), "BlueZ GATT".into(), "UPower D-Bus".into(), "HID Standard".into(), "Rapoo Vendor HID (0x07)".into(), "Sysfs".into()],
+        consulted_sources: vec![
+            "BlueZ D-Bus".into(),
+            "BlueZ GATT".into(),
+            "UPower D-Bus".into(),
+            "HID Standard".into(),
+            "Rapoo Vendor HID (0x07)".into(),
+            "Sysfs".into(),
+        ],
         active_source: result.chosen.source.clone(),
         raw_status,
         chosen_reading: result.chosen,
@@ -168,4 +227,3 @@ pub fn generate_battery_diagnostic_report(
         timestamp: current_epoch_seconds(),
     }
 }
-

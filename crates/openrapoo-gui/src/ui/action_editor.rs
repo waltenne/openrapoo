@@ -41,14 +41,22 @@ pub fn render_action_editor(
                         .text_size(px(14.0))
                         .font_weight(gpui::FontWeight::SEMIBOLD)
                         .text_color(theme.text_primary)
-                        .child(if is_en { "Select a Control" } else { "Selecione um Controle" }),
+                        .child(if is_en {
+                            "Select a Control"
+                        } else {
+                            "Selecione um Controle"
+                        }),
                 )
                 .child(
                     div()
                         .text_size(px(12.0))
                         .text_color(theme.text_muted)
                         .text_align(gpui::TextAlign::Center)
-                        .child(if is_en { "Click one of the mouse buttons or list items to edit its action." } else { "Clique em um dos botões do mouse ou na lista para editar sua ação." }),
+                        .child(if is_en {
+                            "Click one of the mouse buttons or list items to edit its action."
+                        } else {
+                            "Clique em um dos botões do mouse ou na lista para editar sua ação."
+                        }),
                 ),
         );
     };
@@ -64,14 +72,62 @@ pub fn render_action_editor(
     let cb_reset = on_reset_action.clone();
 
     let current_action_display = match &current_action {
-        ButtonAction::PassThrough => if is_en { "System Default".to_string() } else { "Padrão do Sistema".to_string() },
-        ButtonAction::Key { key } => if is_en { format!("Key: {key}") } else { format!("Tecla: {key}") },
-        ButtonAction::KeyCombo { keys } => if is_en { format!("Shortcut: {}", keys.join(" + ")) } else { format!("Atalho: {}", keys.join(" + ")) },
-        ButtonAction::Copy => if is_en { "Copy (Ctrl + C)".to_string() } else { "Copiar (Ctrl + C)".to_string() },
-        ButtonAction::Paste => if is_en { "Paste (Ctrl + V)".to_string() } else { "Colar (Ctrl + V)".to_string() },
-        ButtonAction::OpenTerminal => if is_en { "Open Terminal".to_string() } else { "Abrir Terminal".to_string() },
-        ButtonAction::CloseWindow => if is_en { "Close Window".to_string() } else { "Fechar Janela".to_string() },
-        ButtonAction::Disabled => if is_en { "Disabled".to_string() } else { "Desativado".to_string() },
+        ButtonAction::PassThrough => {
+            if is_en {
+                "System Default".to_string()
+            } else {
+                "Padrão do Sistema".to_string()
+            }
+        }
+        ButtonAction::Key { key } => {
+            if is_en {
+                format!("Key: {key}")
+            } else {
+                format!("Tecla: {key}")
+            }
+        }
+        ButtonAction::KeyCombo { keys } => {
+            if is_en {
+                format!("Shortcut: {}", keys.join(" + "))
+            } else {
+                format!("Atalho: {}", keys.join(" + "))
+            }
+        }
+        ButtonAction::Copy => {
+            if is_en {
+                "Copy (Ctrl + C)".to_string()
+            } else {
+                "Copiar (Ctrl + C)".to_string()
+            }
+        }
+        ButtonAction::Paste => {
+            if is_en {
+                "Paste (Ctrl + V)".to_string()
+            } else {
+                "Colar (Ctrl + V)".to_string()
+            }
+        }
+        ButtonAction::OpenTerminal => {
+            if is_en {
+                "Open Terminal".to_string()
+            } else {
+                "Abrir Terminal".to_string()
+            }
+        }
+        ButtonAction::CloseWindow => {
+            if is_en {
+                "Close Window".to_string()
+            } else {
+                "Fechar Janela".to_string()
+            }
+        }
+        ButtonAction::Disabled => {
+            if is_en {
+                "Disabled".to_string()
+            } else {
+                "Desativado".to_string()
+            }
+        }
         ButtonAction::Macro { macro_id } => format!("Macro ({})", &macro_id.to_string()[..8]),
         _ => format!("{current_action:?}"),
     };
@@ -582,7 +638,7 @@ fn action_item(
     let bg = if is_active {
         theme.panel_elevated
     } else {
-        theme.panel_elevated
+        theme.bg
     };
 
     let border_color = if is_active {
@@ -616,7 +672,11 @@ fn action_item(
                 .text_color(theme.panel)
                 .text_size(px(10.0))
                 .font_weight(gpui::FontWeight::BOLD)
-                .child(if matches!(language, Language::English) { "✓ Active" } else { "✓ Ativo" })
+                .child(if matches!(language, Language::English) {
+                    "✓ Active"
+                } else {
+                    "✓ Ativo"
+                })
         } else {
             div()
         })

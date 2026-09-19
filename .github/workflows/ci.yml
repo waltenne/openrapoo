@@ -34,7 +34,17 @@ jobs:
             libudev-dev \
             libevdev-dev \
             libdbus-1-dev \
-            desktop-file-utils
+            desktop-file-utils \
+            libx11-dev \
+            libx11-xcb-dev \
+            libxcb-xfixes0-dev \
+            libxcb-shape0-dev \
+            libxcb-render0-dev \
+            libxcb1-dev \
+            libfontconfig1-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libgl1-mesa-dev
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable

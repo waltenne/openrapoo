@@ -12,7 +12,8 @@ impl BatteryService {
     /// Refresh battery status for a single device.
     #[allow(dead_code)]
     pub fn refresh_battery(device: &mut RapooDevice) -> BatteryStatus {
-        let status = openrapoo_core::battery::query_battery_for_identity(&device.to_device_identity());
+        let status =
+            openrapoo_core::battery::query_battery_for_identity(&device.to_device_identity());
         device.battery_status = status.clone();
         status
     }

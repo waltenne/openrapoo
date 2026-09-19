@@ -139,7 +139,12 @@ pub fn get_mt760_pro_png_path() -> Option<PathBuf> {
 
     // 4. User local data share directory (~/.local/share/openrapoo/assets)
     if let Ok(home) = std::env::var("HOME") {
-        let user_share = PathBuf::from(&home).join(".local").join("share").join("openrapoo").join("assets").join(ASSET_NAME);
+        let user_share = PathBuf::from(&home)
+            .join(".local")
+            .join("share")
+            .join("openrapoo")
+            .join("assets")
+            .join(ASSET_NAME);
         if user_share.exists() {
             return Some(user_share);
         }
@@ -202,7 +207,12 @@ pub fn get_e9050l_png_path() -> Option<PathBuf> {
             }
         }
         if let Ok(home) = std::env::var("HOME") {
-            let user_share = PathBuf::from(&home).join(".local").join("share").join("openrapoo").join("assets").join(name);
+            let user_share = PathBuf::from(&home)
+                .join(".local")
+                .join("share")
+                .join("openrapoo")
+                .join("assets")
+                .join(name);
             if user_share.exists() {
                 return Some(user_share);
             }
@@ -279,12 +289,24 @@ pub fn get_app_icon_path() -> Option<PathBuf> {
     }
 
     if let Ok(home) = std::env::var("HOME") {
-        let user_share = PathBuf::from(&home).join(".local").join("share").join("openrapoo").join("assets").join(ASSET_NAME);
+        let user_share = PathBuf::from(&home)
+            .join(".local")
+            .join("share")
+            .join("openrapoo")
+            .join("assets")
+            .join(ASSET_NAME);
         if user_share.exists() {
             tracing::debug!("Resolved app icon asset at {:?}", user_share);
             return Some(user_share);
         }
-        let user_app_icon = PathBuf::from(&home).join(".local").join("share").join("icons").join("hicolor").join("256x256").join("apps").join("openrapoo-gui.png");
+        let user_app_icon = PathBuf::from(&home)
+            .join(".local")
+            .join("share")
+            .join("icons")
+            .join("hicolor")
+            .join("256x256")
+            .join("apps")
+            .join("openrapoo-gui.png");
         if user_app_icon.exists() {
             tracing::debug!("Resolved app icon asset at {:?}", user_app_icon);
             return Some(user_app_icon);
@@ -302,7 +324,8 @@ pub fn get_app_icon_path() -> Option<PathBuf> {
         tracing::debug!("Resolved app icon asset at {:?}", system_share);
         return Some(system_share);
     }
-    let system_share_icons = PathBuf::from("/usr/share/icons/hicolor/256x256/apps").join("io.github.openrapoo.OpenRapoo.png");
+    let system_share_icons = PathBuf::from("/usr/share/icons/hicolor/256x256/apps")
+        .join("io.github.openrapoo.OpenRapoo.png");
     if system_share_icons.exists() {
         tracing::debug!("Resolved app icon asset at {:?}", system_share_icons);
         return Some(system_share_icons);

@@ -99,7 +99,10 @@ impl BatteryAggregator {
 
         for provider in &self.providers {
             if !provider.is_available() {
-                log.push(format!("Provedor '{}' não disponível no ambiente.", provider.name()));
+                log.push(format!(
+                    "Provedor '{}' não disponível no ambiente.",
+                    provider.name()
+                ));
                 continue;
             }
 
@@ -119,8 +122,13 @@ impl BatteryAggregator {
                 if let Some(pct) = reading.percentage {
                     if pct > 100 {
                         let reason = format!("Percentual fora da faixa válida: {pct}%");
-                        log.push(format!("Leitura do provedor '{}' descartada: {reason}", provider.name()));
-                        reading.validity = BatteryValidity::Invalid { reason: reason.clone() };
+                        log.push(format!(
+                            "Leitura do provedor '{}' descartada: {reason}",
+                            provider.name()
+                        ));
+                        reading.validity = BatteryValidity::Invalid {
+                            reason: reason.clone(),
+                        };
                         discarded.push((reading, reason));
                         continue;
                     }
@@ -129,8 +137,13 @@ impl BatteryAggregator {
                 // Validate timestamp (future check)
                 if reading.timestamp > now + 5 {
                     let reason = "Timestamp no futuro rejeitado".to_string();
-                    log.push(format!("Leitura do provedor '{}' descartada: {reason}", provider.name()));
-                    reading.validity = BatteryValidity::Invalid { reason: reason.clone() };
+                    log.push(format!(
+                        "Leitura do provedor '{}' descartada: {reason}",
+                        provider.name()
+                    ));
+                    reading.validity = BatteryValidity::Invalid {
+                        reason: reason.clone(),
+                    };
                     discarded.push((reading, reason));
                     continue;
                 }
@@ -138,8 +151,12 @@ impl BatteryAggregator {
                 // Validate TTL (expiry check)
                 if now > reading.timestamp && (now - reading.timestamp) > ttl {
                     let age_seconds = now - reading.timestamp;
-                    let reason = format!("Leitura expirada (idade: {age_seconds}s, max TTL: {ttl}s)");
-                    log.push(format!("Leitura do provedor '{}' expirada: {reason}", provider.name()));
+                    let reason =
+                        format!("Leitura expirada (idade: {age_seconds}s, max TTL: {ttl}s)");
+                    log.push(format!(
+                        "Leitura do provedor '{}' expirada: {reason}",
+                        provider.name()
+                    ));
                     reading.validity = BatteryValidity::StaleReading { age_seconds };
                     discarded.push((reading, reason));
                     continue;
@@ -152,7 +169,10 @@ impl BatteryAggregator {
                         .invalidation_reason
                         .clone()
                         .unwrap_or_else(|| format!("{:?}", reading.validity));
-                    log.push(format!("Leitura do provedor '{}' descartada: {reason}", provider.name()));
+                    log.push(format!(
+                        "Leitura do provedor '{}' descartada: {reason}",
+                        provider.name()
+                    ));
                     discarded.push((reading, reason));
                 }
             }
@@ -177,7 +197,9 @@ impl BatteryAggregator {
             // Transport-specific fallback message
             let fallback_reason = match device.transport {
                 ConnectionType::TwoPointFourGhz => "Bateria não exposta pelo dongle".to_string(),
-                ConnectionType::UsbCable | ConnectionType::UsbWired => "Bateria indisponível".to_string(),
+                ConnectionType::UsbCable | ConnectionType::UsbWired => {
+                    "Bateria indisponível".to_string()
+                }
                 ConnectionType::Bluetooth => "Bateria indisponível".to_string(),
                 ConnectionType::Dock => "Dock detectado, bateria não exposta".to_string(),
                 _ => "Bateria indisponível".to_string(),
@@ -274,20 +296,38 @@ pub fn get_ttl_for_transport(transport: &ConnectionType) -> u64 {
 }
 
 /// Helper function to check if a battery telemetry provider source is compatible with the active transport.
-pub fn is_provider_compatible_with_transport(source: BatterySource, transport: &ConnectionType) -> bool {
+pub fn is_provider_compatible_with_transport(
+    source: BatterySource,
+    transport: &ConnectionType,
+) -> bool {
     match (source, transport) {
         // Bluetooth transport accepts BlueZ, BlueZ GATT, UPower, or Generic/Sysfs
         (BatterySource::BlueZ | BatterySource::BluezGatt, ConnectionType::Bluetooth) => true,
         (BatterySource::UPower | BatterySource::Sysfs, ConnectionType::Bluetooth) => true,
 
         // USB Cable transport accepts HID Standard, Sysfs, UPower, Rapoo Vendor HID
-        (BatterySource::HidStandard | BatterySource::Sysfs | BatterySource::UPower | BatterySource::HidVendorSpecific, ConnectionType::UsbCable | ConnectionType::UsbWired) => true,
+        (
+            BatterySource::HidStandard
+            | BatterySource::Sysfs
+            | BatterySource::UPower
+            | BatterySource::HidVendorSpecific,
+            ConnectionType::UsbCable | ConnectionType::UsbWired,
+        ) => true,
 
         // 2.4GHz Dongle transport accepts Rapoo Vendor HID, HID Standard, UPower
-        (BatterySource::HidVendorSpecific | BatterySource::HidStandard | BatterySource::UPower, ConnectionType::TwoPointFourGhz) => true,
+        (
+            BatterySource::HidVendorSpecific | BatterySource::HidStandard | BatterySource::UPower,
+            ConnectionType::TwoPointFourGhz,
+        ) => true,
 
         // Dock transport accepts Sysfs, HID, UPower
-        (BatterySource::Sysfs | BatterySource::HidStandard | BatterySource::UPower | BatterySource::HidVendorSpecific, ConnectionType::Dock) => true,
+        (
+            BatterySource::Sysfs
+            | BatterySource::HidStandard
+            | BatterySource::UPower
+            | BatterySource::HidVendorSpecific,
+            ConnectionType::Dock,
+        ) => true,
 
         // Unknown transport accepts all non-unavailable sources
         (_, ConnectionType::Unknown) => true,
@@ -296,4 +336,3 @@ pub fn is_provider_compatible_with_transport(source: BatterySource, transport: &
         _ => false,
     }
 }
-

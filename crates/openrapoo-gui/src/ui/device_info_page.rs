@@ -9,14 +9,19 @@ use gpui_component::{h_flex, v_flex};
 use openrapoo_core::battery::BatteryStatus;
 use openrapoo_core::permissions::check_input_group_status;
 
-pub fn render_device_info_page(device: Option<&RapooDevice>, language: Language) -> impl IntoElement {
+pub fn render_device_info_page(
+    device: Option<&RapooDevice>,
+    language: Language,
+) -> impl IntoElement {
     let theme = current_theme();
 
     use openrapoo_core::device::DeviceType;
 
     let is_en = matches!(language, Language::English);
 
-    let dev_name = device.map(|d| d.name.clone()).unwrap_or_else(|| "Rapoo MT760 Pro".to_string());
+    let dev_name = device
+        .map(|d| d.name.clone())
+        .unwrap_or_else(|| "Rapoo MT760 Pro".to_string());
     let is_keyboard = device
         .map(|d| d.device_type == DeviceType::Keyboard)
         .unwrap_or(false);
@@ -91,55 +96,166 @@ pub fn render_device_info_page(device: Option<&RapooDevice>, language: Language)
             .child(div().text_size(px(40.0)).child("🖱️"))
     };
 
-    let battery_summary = device.and_then(|d| match &d.battery_status {
-        BatteryStatus::Available { percentage, charging, .. } => {
-            if *charging {
-                Some(format!("{percentage}% (⚡)"))
-            } else {
-                Some(format!("{percentage}%"))
+    let battery_summary = device
+        .and_then(|d| match &d.battery_status {
+            BatteryStatus::Available {
+                percentage,
+                charging,
+                ..
+            } => {
+                if *charging {
+                    Some(format!("{percentage}% (⚡)"))
+                } else {
+                    Some(format!("{percentage}%"))
+                }
             }
-        }
-        BatteryStatus::Charging { percentage: Some(pct), .. } => Some(format!("{pct}% (⚡)")),
-        BatteryStatus::Full => Some(if is_en { "100% (Full) 🟢".to_string() } else { "100% (Completa) 🟢".to_string() }),
-        BatteryStatus::Discharging { percentage } => Some(format!("{percentage}%")),
-        _ => None,
-    }).unwrap_or_else(|| if is_en { "Unavailable / Not exposed".to_string() } else { "Indisponível / Não exposta".to_string() });
+            BatteryStatus::Charging {
+                percentage: Some(pct),
+                ..
+            } => Some(format!("{pct}% (⚡)")),
+            BatteryStatus::Full => Some(if is_en {
+                "100% (Full) 🟢".to_string()
+            } else {
+                "100% (Completa) 🟢".to_string()
+            }),
+            BatteryStatus::Discharging { percentage } => Some(format!("{percentage}%")),
+            _ => None,
+        })
+        .unwrap_or_else(|| {
+            if is_en {
+                "Unavailable / Not exposed".to_string()
+            } else {
+                "Indisponível / Não exposta".to_string()
+            }
+        });
 
     let specs_content = if is_keyboard {
         v_flex()
             .flex_1()
             .justify_between()
             .gap_1p5()
-            .child(info_row(if is_en { "Firmware Version" } else { "Versão do Firmware" }, &fw_version))
-            .child(info_row(if is_en { "Keyboard Type" } else { "Tipo de Teclado" }, if is_en { "E9050L Ultra-Slim Keyboard" } else { "Teclado Ultra-Fino E9050L" }))
-            .child(info_row(if is_en { "Remapping Software" } else { "Software de Remapeamento" }, "Standard Input"))
-            .child(info_row(if is_en { "Key Layout" } else { "Mapeamento de Teclas" }, "Chiclet Slim (ABNT2 / ANSI)"))
-            .child(info_row(if is_en { "Media Shortcuts" } else { "Atalhos de Mídia" }, "Fn + F1-F12 · 2.4G / BT1 / BT2"))
+            .child(info_row(
+                if is_en {
+                    "Firmware Version"
+                } else {
+                    "Versão do Firmware"
+                },
+                &fw_version,
+            ))
+            .child(info_row(
+                if is_en {
+                    "Keyboard Type"
+                } else {
+                    "Tipo de Teclado"
+                },
+                if is_en {
+                    "E9050L Ultra-Slim Keyboard"
+                } else {
+                    "Teclado Ultra-Fino E9050L"
+                },
+            ))
+            .child(info_row(
+                if is_en {
+                    "Remapping Software"
+                } else {
+                    "Software de Remapeamento"
+                },
+                "Standard Input",
+            ))
+            .child(info_row(
+                if is_en {
+                    "Key Layout"
+                } else {
+                    "Mapeamento de Teclas"
+                },
+                "Chiclet Slim (ABNT2 / ANSI)",
+            ))
+            .child(info_row(
+                if is_en {
+                    "Media Shortcuts"
+                } else {
+                    "Atalhos de Mídia"
+                },
+                "Fn + F1-F12 · 2.4G / BT1 / BT2",
+            ))
     } else {
         v_flex()
             .flex_1()
             .justify_between()
             .gap_1p5()
-            .child(info_row(if is_en { "Firmware Version" } else { "Versão do Firmware" }, &fw_version))
-            .child(info_row(if is_en { "Optical Sensor" } else { "Sensor Óptico" }, "PixArt PAW3395 (4000 DPI)"))
-            .child(info_row(if is_en { "Controller / MCU" } else { "Controlador / MCU" }, "ITON Rapoo Dual-Mode"))
-            .child(info_row(if is_en { "Hardware Revision" } else { "Revisão de Hardware" }, "Rev 2.0 (2.4GHz + BT 5.0)"))
-            .child(info_row(if is_en { "Polling Rate" } else { "Taxa de Amostragem" }, "1000 Hz (1ms)"))
+            .child(info_row(
+                if is_en {
+                    "Firmware Version"
+                } else {
+                    "Versão do Firmware"
+                },
+                &fw_version,
+            ))
+            .child(info_row(
+                if is_en {
+                    "Optical Sensor"
+                } else {
+                    "Sensor Óptico"
+                },
+                "PixArt PAW3395 (4000 DPI)",
+            ))
+            .child(info_row(
+                if is_en {
+                    "Controller / MCU"
+                } else {
+                    "Controlador / MCU"
+                },
+                "ITON Rapoo Dual-Mode",
+            ))
+            .child(info_row(
+                if is_en {
+                    "Hardware Revision"
+                } else {
+                    "Revisão de Hardware"
+                },
+                "Rev 2.0 (2.4GHz + BT 5.0)",
+            ))
+            .child(info_row(
+                if is_en {
+                    "Polling Rate"
+                } else {
+                    "Taxa de Amostragem"
+                },
+                "1000 Hz (1ms)",
+            ))
     };
 
     let ident_content = v_flex()
         .flex_1()
         .justify_between()
         .gap_1p5()
-        .child(info_row(if is_en { "Model Name" } else { "Nome do Modelo" }, &dev_name))
-        .child(info_row(if is_en { "Manufacturer" } else { "Fabricante" }, "ITON Corp. / Rapoo"))
+        .child(info_row(
+            if is_en {
+                "Model Name"
+            } else {
+                "Nome do Modelo"
+            },
+            &dev_name,
+        ))
+        .child(info_row(
+            if is_en { "Manufacturer" } else { "Fabricante" },
+            "ITON Corp. / Rapoo",
+        ))
         .child(info_row("Vendor ID (VID)", &format!("0x{vid:04X}")))
         .child(info_row("Product ID (PID)", &format!("0x{pid:04X}")));
 
     let conn_status_badge = if device.map(|d| d.is_connected()).unwrap_or(true) {
-        if is_en { "Connected 🟢" } else { "Conectado 🟢" }
+        if is_en {
+            "Connected 🟢"
+        } else {
+            "Conectado 🟢"
+        }
     } else {
-        if is_en { "Disconnected 🔴" } else { "Desconectado 🔴" }
+        if is_en {
+            "Disconnected 🔴"
+        } else {
+            "Desconectado 🔴"
+        }
     };
 
     v_flex()
@@ -158,13 +274,21 @@ pub fn render_device_info_page(device: Option<&RapooDevice>, language: Language)
                         .text_size(px(20.0))
                         .font_weight(gpui::FontWeight::BOLD)
                         .text_color(theme.text_primary)
-                        .child(if is_en { "Device Information" } else { "Informações do Dispositivo" }),
+                        .child(if is_en {
+                            "Device Information"
+                        } else {
+                            "Informações do Dispositivo"
+                        }),
                 )
                 .child(
                     div()
                         .text_size(px(13.0))
                         .text_color(theme.text_muted)
-                        .child(if is_en { "Linux system hardware, identification, and permissions summary." } else { "Resumo de hardware, identificação e permissões do sistema Linux." }),
+                        .child(if is_en {
+                            "Linux system hardware, identification, and permissions summary."
+                        } else {
+                            "Resumo de hardware, identificação e permissões do sistema Linux."
+                        }),
                 ),
         )
         .child(
@@ -222,7 +346,10 @@ pub fn render_device_info_page(device: Option<&RapooDevice>, language: Language)
                             div()
                                 .text_size(px(13.0))
                                 .text_color(theme.text_muted)
-                                .child(format!("{}: {battery_summary}", if is_en { "Battery" } else { "Bateria" })),
+                                .child(format!(
+                                    "{}: {battery_summary}",
+                                    if is_en { "Battery" } else { "Bateria" }
+                                )),
                         )
                         .child(
                             div()
@@ -254,7 +381,11 @@ pub fn render_device_info_page(device: Option<&RapooDevice>, language: Language)
                                 .text_size(px(14.0))
                                 .font_weight(gpui::FontWeight::BOLD)
                                 .text_color(theme.text_primary)
-                                .child(if is_en { "Hardware Identification" } else { "Identificação de Hardware" }),
+                                .child(if is_en {
+                                    "Hardware Identification"
+                                } else {
+                                    "Identificação de Hardware"
+                                }),
                         )
                         .child(ident_content),
                 )
@@ -274,7 +405,11 @@ pub fn render_device_info_page(device: Option<&RapooDevice>, language: Language)
                                 .text_size(px(14.0))
                                 .font_weight(gpui::FontWeight::BOLD)
                                 .text_color(theme.text_primary)
-                                .child(if is_en { "Hardware Specifications" } else { "Especificações de Hardware" }),
+                                .child(if is_en {
+                                    "Hardware Specifications"
+                                } else {
+                                    "Especificações de Hardware"
+                                }),
                         )
                         .child(specs_content),
                 ),
@@ -294,12 +429,44 @@ pub fn render_device_info_page(device: Option<&RapooDevice>, language: Language)
                         .text_size(px(14.0))
                         .font_weight(gpui::FontWeight::BOLD)
                         .text_color(theme.text_primary)
-                        .child(if is_en { "Linux System Integration" } else { "Integração com o Sistema Linux" }),
+                        .child(if is_en {
+                            "Linux System Integration"
+                        } else {
+                            "Integração com o Sistema Linux"
+                        }),
                 )
-                .child(info_row(if is_en { "`input` Group" } else { "Grupo `input`" }, if is_en { group_status.display_message_en() } else { group_status.display_message_pt() }))
-                .child(info_row(if is_en { "UDev Rule (99-openrapoo.rules)" } else { "Regra UDev (99-openrapoo.rules)" }, if is_en { "Installed 🟢" } else { "Instalada 🟢" }))
-                .child(info_row(if is_en { "Evdev Node" } else { "Nó Evdev" }, &evdev))
-                .child(info_row(if is_en { "HIDRAW Node" } else { "Nó HIDRAW" }, &hidraw)),
+                .child(info_row(
+                    if is_en {
+                        "`input` Group"
+                    } else {
+                        "Grupo `input`"
+                    },
+                    if is_en {
+                        group_status.display_message_en()
+                    } else {
+                        group_status.display_message_pt()
+                    },
+                ))
+                .child(info_row(
+                    if is_en {
+                        "UDev Rule (99-openrapoo.rules)"
+                    } else {
+                        "Regra UDev (99-openrapoo.rules)"
+                    },
+                    if is_en {
+                        "Installed 🟢"
+                    } else {
+                        "Instalada 🟢"
+                    },
+                ))
+                .child(info_row(
+                    if is_en { "Evdev Node" } else { "Nó Evdev" },
+                    &evdev,
+                ))
+                .child(info_row(
+                    if is_en { "HIDRAW Node" } else { "Nó HIDRAW" },
+                    &hidraw,
+                )),
         )
         .child(div().h(px(32.0)))
 }

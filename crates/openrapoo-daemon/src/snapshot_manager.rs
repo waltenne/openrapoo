@@ -50,7 +50,9 @@ pub fn save_snapshot(snapshot: &HardwareConfigSnapshot) -> Result<PathBuf> {
 pub fn load_snapshot(device_id: &str) -> Result<HardwareConfigSnapshot> {
     let path = snapshot_file_path(device_id);
     if !path.exists() {
-        return Err(anyhow!("No hardware snapshot found for device `{device_id}`"));
+        return Err(anyhow!(
+            "No hardware snapshot found for device `{device_id}`"
+        ));
     }
 
     let file = File::open(&path)?;

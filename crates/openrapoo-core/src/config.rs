@@ -18,7 +18,7 @@ fn default_polling_rate() -> u32 {
 /// Validates whether a DPI value is supported by Rapoo MT760 Pro hardware.
 pub fn validate_dpi(dpi: u32) -> Result<(), OpenRapooError> {
     const VALID_DPI_LEVELS: &[u32] = &[800, 1000, 1200, 1600, 2400, 3200, 4000];
-    if VALID_DPI_LEVELS.contains(&dpi) || (dpi >= 50 && dpi <= 26000 && dpi % 50 == 0) {
+    if VALID_DPI_LEVELS.contains(&dpi) || ((50..=26000).contains(&dpi) && dpi.is_multiple_of(50)) {
         Ok(())
     } else {
         Err(OpenRapooError::Config(format!(

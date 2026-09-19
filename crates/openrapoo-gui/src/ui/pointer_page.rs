@@ -38,7 +38,8 @@ pub fn render_pointer_page(
             Language::Portuguese => "Base de Carga",
         },
         ConnectionType::Disconnected | ConnectionType::Unknown => i18n::conn_disconnected(language),
-    }.to_string();
+    }
+    .to_string();
 
     let dpi_levels = [800u32, 1000, 1200, 1600, 2400, 3200, 4000];
     let hz_levels = [
@@ -90,8 +91,14 @@ pub fn render_pointer_page(
     };
 
     let subtitle = match language {
-        Language::English => format!("Sensitivity and polling rate settings for profile '{}'", active_profile.name),
-        Language::Portuguese => format!("Ajustes de sensibilidade e amostragem do perfil '{}'", active_profile.name),
+        Language::English => format!(
+            "Sensitivity and polling rate settings for profile '{}'",
+            active_profile.name
+        ),
+        Language::Portuguese => format!(
+            "Ajustes de sensibilidade e amostragem do perfil '{}'",
+            active_profile.name
+        ),
     };
 
     let bt_warning_text = match language {
@@ -124,122 +131,117 @@ pub fn render_pointer_page(
         Language::Portuguese => "Ações do Hardware (/dev/hidraw ioctl report 0x07)",
     };
 
-    let mut root = v_flex()
-        .flex_1()
-        .w_full()
-        .p_5()
-        .gap_4()
-        .child(
-            // Compact Header + Active Summary Row + Status Badge
-            h_flex()
-                .w_full()
-                .p_4()
-                .rounded_xl()
-                .bg(theme.panel)
-                .border_1()
-                .border_color(theme.border)
-                .justify_between()
-                .items_center()
-                .child(
-                    v_flex()
-                        .gap_1()
-                        .child(
-                            div()
-                                .text_size(px(18.0))
-                                .font_weight(gpui::FontWeight::BOLD)
-                                .text_color(theme.text_primary)
-                                .child(i18n::pointer_page_title(language)),
-                        )
-                        .child(
-                            div()
-                                .text_size(px(12.0))
-                                .text_color(theme.text_muted)
-                                .child(subtitle),
-                        ),
-                )
-                .child(
-                    h_flex()
-                        .gap_3()
-                        .items_center()
-                        .child(
-                            div()
-                                .px_3()
-                                .py_1p5()
-                                .rounded_lg()
-                                .bg(theme.panel_elevated)
-                                .border_1()
-                                .border_color(theme.accent_blue)
-                                .child(
-                                    h_flex()
-                                        .gap_2()
-                                        .items_center()
-                                        .child(
-                                            div()
-                                                .text_size(px(11.0))
-                                                .text_color(theme.text_muted)
-                                                .child("DPI:"),
-                                        )
-                                        .child(
-                                            div()
-                                                .text_size(px(14.0))
-                                                .font_weight(gpui::FontWeight::BOLD)
-                                                .text_color(theme.accent_blue)
-                                                .child(format!("{} DPI", active_profile.dpi)),
-                                        ),
-                                ),
-                        )
-                        .child(
-                            div()
-                                .px_3()
-                                .py_1p5()
-                                .rounded_lg()
-                                .bg(theme.panel_elevated)
-                                .border_1()
-                                .border_color(theme.accent_green)
-                                .child(
-                                    h_flex()
-                                        .gap_2()
-                                        .items_center()
-                                        .child(
-                                            div()
-                                                .text_size(px(11.0))
-                                                .text_color(theme.text_muted)
-                                                .child("Polling:"),
-                                        )
-                                        .child(
-                                            div()
-                                                .text_size(px(14.0))
-                                                .font_weight(gpui::FontWeight::BOLD)
-                                                .text_color(theme.accent_green)
-                                                .child(format!("{} Hz", active_profile.polling_rate)),
-                                        ),
-                                ),
-                        )
-                        .child(
-                            div()
-                                .px_3()
-                                .py_1p5()
-                                .rounded_lg()
-                                .bg(status_bg)
-                                .border_1()
-                                .border_color(status_border)
-                                .text_size(px(12.0))
-                                .font_weight(gpui::FontWeight::SEMIBOLD)
-                                .text_color(status_fg)
-                                .child(status_text),
-                        )
-                        .child(
-                            div()
-                                .px_3()
-                                .py_1p5()
-                                .rounded_lg()
-                                .bg(theme.panel_elevated)
-                                .text_size(px(12.0))
-                                .text_color(theme.text_muted)
-                                .child(conn_str),
-                        ),
-                ),
-        );
+    let mut root = v_flex().flex_1().w_full().p_5().gap_4().child(
+        // Compact Header + Active Summary Row + Status Badge
+        h_flex()
+            .w_full()
+            .p_4()
+            .rounded_xl()
+            .bg(theme.panel)
+            .border_1()
+            .border_color(theme.border)
+            .justify_between()
+            .items_center()
+            .child(
+                v_flex()
+                    .gap_1()
+                    .child(
+                        div()
+                            .text_size(px(18.0))
+                            .font_weight(gpui::FontWeight::BOLD)
+                            .text_color(theme.text_primary)
+                            .child(i18n::pointer_page_title(language)),
+                    )
+                    .child(
+                        div()
+                            .text_size(px(12.0))
+                            .text_color(theme.text_muted)
+                            .child(subtitle),
+                    ),
+            )
+            .child(
+                h_flex()
+                    .gap_3()
+                    .items_center()
+                    .child(
+                        div()
+                            .px_3()
+                            .py_1p5()
+                            .rounded_lg()
+                            .bg(theme.panel_elevated)
+                            .border_1()
+                            .border_color(theme.accent_blue)
+                            .child(
+                                h_flex()
+                                    .gap_2()
+                                    .items_center()
+                                    .child(
+                                        div()
+                                            .text_size(px(11.0))
+                                            .text_color(theme.text_muted)
+                                            .child("DPI:"),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_size(px(14.0))
+                                            .font_weight(gpui::FontWeight::BOLD)
+                                            .text_color(theme.accent_blue)
+                                            .child(format!("{} DPI", active_profile.dpi)),
+                                    ),
+                            ),
+                    )
+                    .child(
+                        div()
+                            .px_3()
+                            .py_1p5()
+                            .rounded_lg()
+                            .bg(theme.panel_elevated)
+                            .border_1()
+                            .border_color(theme.accent_green)
+                            .child(
+                                h_flex()
+                                    .gap_2()
+                                    .items_center()
+                                    .child(
+                                        div()
+                                            .text_size(px(11.0))
+                                            .text_color(theme.text_muted)
+                                            .child("Polling:"),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_size(px(14.0))
+                                            .font_weight(gpui::FontWeight::BOLD)
+                                            .text_color(theme.accent_green)
+                                            .child(format!("{} Hz", active_profile.polling_rate)),
+                                    ),
+                            ),
+                    )
+                    .child(
+                        div()
+                            .px_3()
+                            .py_1p5()
+                            .rounded_lg()
+                            .bg(status_bg)
+                            .border_1()
+                            .border_color(status_border)
+                            .text_size(px(12.0))
+                            .font_weight(gpui::FontWeight::SEMIBOLD)
+                            .text_color(status_fg)
+                            .child(status_text),
+                    )
+                    .child(
+                        div()
+                            .px_3()
+                            .py_1p5()
+                            .rounded_lg()
+                            .bg(theme.panel_elevated)
+                            .text_size(px(12.0))
+                            .text_color(theme.text_muted)
+                            .child(conn_str),
+                    ),
+            ),
+    );
 
     if is_bluetooth {
         root = root.child(
@@ -349,8 +351,16 @@ pub fn render_pointer_page(
                             .px_4()
                             .py_2()
                             .rounded_lg()
-                            .bg(if is_bluetooth { theme.panel_elevated } else { theme.accent_blue })
-                            .text_color(if is_bluetooth { theme.text_muted } else { theme.text_primary })
+                            .bg(if is_bluetooth {
+                                theme.panel_elevated
+                            } else {
+                                theme.accent_blue
+                            })
+                            .text_color(if is_bluetooth {
+                                theme.text_muted
+                            } else {
+                                theme.text_primary
+                            })
                             .text_size(px(13.0))
                             .font_weight(gpui::FontWeight::BOLD)
                             .cursor_pointer()

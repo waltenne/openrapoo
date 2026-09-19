@@ -5,14 +5,21 @@ use std::io::{Read, Write};
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::Path;
 
-use crate::RAPOO_VENDOR_ID;
 use super::hidraw::find_vendor_hidraw_candidate;
 use super::provider::{current_epoch_seconds, BatteryProvider, DeviceIdentity};
 use super::types::{
-    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity, RawProviderData,
+    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity,
+    RawProviderData,
 };
+use crate::RAPOO_VENDOR_ID;
 
 pub struct RapooVendorHidProvider;
+
+impl Default for RapooVendorHidProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl RapooVendorHidProvider {
     pub fn new() -> Self {
@@ -45,7 +52,11 @@ impl BatteryProvider for RapooVendorHidProvider {
             return None;
         }
 
-        let vid = if device.vendor_id != 0 { device.vendor_id } else { RAPOO_VENDOR_ID };
+        let vid = if device.vendor_id != 0 {
+            device.vendor_id
+        } else {
+            RAPOO_VENDOR_ID
+        };
 
         // 1. Locate vendor hidraw candidate dynamically using descriptor scanner
         let candidate = find_vendor_hidraw_candidate(
@@ -56,12 +67,19 @@ impl BatteryProvider for RapooVendorHidProvider {
 
         let target_hidraw_path = match candidate {
             Some(ref c) => {
-                log.push(format!("Candidato hidraw proprietário encontrado: {} (Report IDs: {:?})", c.hidraw_path.display(), c.report_ids));
+                log.push(format!(
+                    "Candidato hidraw proprietário encontrado: {} (Report IDs: {:?})",
+                    c.hidraw_path.display(),
+                    c.report_ids
+                ));
                 c.hidraw_path.clone()
             }
             None => {
                 if let Some(ref path) = device.hidraw_path {
-                    log.push(format!("Usando hidraw associado ao dispositivo: {}", path.display()));
+                    log.push(format!(
+                        "Usando hidraw associado ao dispositivo: {}",
+                        path.display()
+                    ));
                     path.clone()
                 } else {
                     log.push("Nenhuma interface hidraw proprietária Rapoo encontrada.".to_string());
@@ -71,7 +89,10 @@ impl BatteryProvider for RapooVendorHidProvider {
         };
 
         if !target_hidraw_path.exists() {
-            log.push(format!("Caminho hidraw {} não existe.", target_hidraw_path.display()));
+            log.push(format!(
+                "Caminho hidraw {} não existe.",
+                target_hidraw_path.display()
+            ));
             return None;
         }
 
@@ -85,7 +106,10 @@ fn query_single_hidraw_vendor_battery(
     device: &DeviceIdentity,
     log: &mut Vec<String>,
 ) -> Option<BatteryReading> {
-    log.push(format!("Abrindo nó hidraw '{}' para consulta proprietária...", hidraw_path.display()));
+    log.push(format!(
+        "Abrindo nó hidraw '{}' para consulta proprietária...",
+        hidraw_path.display()
+    ));
 
     let mut file = match OpenOptions::new()
         .read(true)
@@ -95,7 +119,10 @@ fn query_single_hidraw_vendor_battery(
     {
         Ok(f) => f,
         Err(e) => {
-            log.push(format!("Falha ao abrir '{}': {e} (permissão ou dispositivo ocupado)", hidraw_path.display()));
+            log.push(format!(
+                "Falha ao abrir '{}': {e} (permissão ou dispositivo ocupado)",
+                hidraw_path.display()
+            ));
             return None;
         }
     };
@@ -106,7 +133,10 @@ fn query_single_hidraw_vendor_battery(
     req_packet[1] = 0x01; // Category: Device Info / Battery Query
 
     if let Err(e) = file.write_all(&req_packet) {
-        log.push(format!("Envio da sonda Report ID 0x07 falhou em '{}': {e}", hidraw_path.display()));
+        log.push(format!(
+            "Envio da sonda Report ID 0x07 falhou em '{}': {e}",
+            hidraw_path.display()
+        ));
     } else {
         log.push("Sonda Report ID 0x07 enviada. Aguardando resposta...".to_string());
         std::thread::sleep(std::time::Duration::from_millis(15));
@@ -128,7 +158,11 @@ fn query_single_hidraw_vendor_battery(
 
                     return Some(BatteryReading {
                         percentage: Some(pct),
-                        state: if is_charging { BatteryState::Charging } else { BatteryState::Available },
+                        state: if is_charging {
+                            BatteryState::Charging
+                        } else {
+                            BatteryState::Available
+                        },
                         is_present: true,
                         charging: Some(is_charging),
                         source: BatterySource::HidVendorSpecific,
@@ -157,7 +191,10 @@ fn query_single_hidraw_vendor_battery(
     req_a0[1] = 0x08;
 
     if let Err(e) = file.write_all(&req_a0) {
-        log.push(format!("Envio da sonda 0xA0 falhou em '{}': {e}", hidraw_path.display()));
+        log.push(format!(
+            "Envio da sonda 0xA0 falhou em '{}': {e}",
+            hidraw_path.display()
+        ));
     } else {
         std::thread::sleep(std::time::Duration::from_millis(15));
         let mut buf = [0u8; 64];
@@ -174,7 +211,11 @@ fn query_single_hidraw_vendor_battery(
 
                     return Some(BatteryReading {
                         percentage: Some(pct),
-                        state: if chg { BatteryState::Charging } else { BatteryState::Available },
+                        state: if chg {
+                            BatteryState::Charging
+                        } else {
+                            BatteryState::Available
+                        },
                         is_present: true,
                         charging: Some(chg),
                         source: BatterySource::HidVendorSpecific,
@@ -197,7 +238,10 @@ fn query_single_hidraw_vendor_battery(
         }
     }
 
-    log.push("Bateria não exposta pelo dongle ou protocolo ainda não respondeu neste modo de conexão.".to_string());
+    log.push(
+        "Bateria não exposta pelo dongle ou protocolo ainda não respondeu neste modo de conexão."
+            .to_string(),
+    );
     None
 }
 
@@ -230,4 +274,3 @@ pub fn parse_rapoo_battery_response(resp: &[u8]) -> Option<(u8, bool)> {
 
     None
 }
-

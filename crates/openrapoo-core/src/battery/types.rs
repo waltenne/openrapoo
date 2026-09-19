@@ -177,7 +177,9 @@ impl BatteryReading {
     pub fn display_text_pt(&self) -> String {
         match &self.validity {
             BatteryValidity::ZeroUnconfirmed => "Bateria: Leitura não confirmada".to_string(),
-            BatteryValidity::ConflictingReadings { .. } => "Bateria: Leitura conflitante".to_string(),
+            BatteryValidity::ConflictingReadings { .. } => {
+                "Bateria: Leitura conflitante".to_string()
+            }
             BatteryValidity::StaleReading { age_seconds } => {
                 let mins = age_seconds / 60;
                 if let Some(pct) = self.percentage {
@@ -221,7 +223,14 @@ impl BatteryReading {
         lines.push(format!("Confiança: {}", self.confidence));
 
         if let Some(chg) = self.charging {
-            lines.push(format!("Estado de Carga: {}", if chg { "Carregando ⚡" } else { "Descarregando" }));
+            lines.push(format!(
+                "Estado de Carga: {}",
+                if chg {
+                    "Carregando ⚡"
+                } else {
+                    "Descarregando"
+                }
+            ));
         }
 
         if let Some(ref reason) = self.invalidation_reason {
@@ -308,7 +317,9 @@ impl BatteryStatus {
             BatteryStatus::Charging { percentage, .. } => *percentage,
             BatteryStatus::Discharging { percentage } => Some(*percentage),
             BatteryStatus::Full => Some(100),
-            BatteryStatus::Stale { last_percentage, .. } => *last_percentage,
+            BatteryStatus::Stale {
+                last_percentage, ..
+            } => *last_percentage,
             _ => None,
         }
     }
@@ -324,43 +335,65 @@ impl BatteryStatus {
 
     pub fn source(&self) -> BatterySource {
         match self {
-            BatteryStatus::Available { source, .. } => source.clone().unwrap_or(BatterySource::Unknown),
-            BatteryStatus::Unavailable { source, .. } => source.clone().unwrap_or(BatterySource::Unavailable),
+            BatteryStatus::Available { source, .. } => {
+                source.clone().unwrap_or(BatterySource::Unknown)
+            }
+            BatteryStatus::Unavailable { source, .. } => {
+                source.clone().unwrap_or(BatterySource::Unavailable)
+            }
             _ => BatterySource::Unknown,
         }
     }
 
     pub fn display_text_pt(&self) -> String {
         match self {
-            BatteryStatus::Available { percentage, charging, .. } => {
+            BatteryStatus::Available {
+                percentage,
+                charging,
+                ..
+            } => {
                 if *charging {
                     format!("{percentage}% · Carregando ⚡")
                 } else {
                     format!("{percentage}%")
                 }
             }
-            BatteryStatus::Charging { percentage: Some(pct), source: PowerSource::Unknown } => {
+            BatteryStatus::Charging {
+                percentage: Some(pct),
+                source: PowerSource::Unknown,
+            } => {
                 format!("{pct}% · Carregando ⚡")
             }
-            BatteryStatus::Charging { percentage: Some(pct), source } => {
+            BatteryStatus::Charging {
+                percentage: Some(pct),
+                source,
+            } => {
                 format!("{pct}% · Carregando via {source} ⚡")
             }
-            BatteryStatus::Charging { percentage: None, source: PowerSource::Unknown } => {
-                "Carregamento detectado · percentual indisponível".to_string()
-            }
-            BatteryStatus::Charging { percentage: None, source } => {
+            BatteryStatus::Charging {
+                percentage: None,
+                source: PowerSource::Unknown,
+            } => "Carregamento detectado · percentual indisponível".to_string(),
+            BatteryStatus::Charging {
+                percentage: None,
+                source,
+            } => {
                 format!("Carregamento detectado via {source} · percentual indisponível")
             }
             BatteryStatus::Discharging { percentage } => {
                 format!("{percentage}% · Em uso")
             }
             BatteryStatus::Full => "100% · Completa".to_string(),
-            BatteryStatus::Stale { last_percentage: Some(pct), age_seconds } => {
+            BatteryStatus::Stale {
+                last_percentage: Some(pct),
+                age_seconds,
+            } => {
                 format!("Leitura antiga ({pct}%, há {age_seconds}s)")
             }
-            BatteryStatus::Stale { last_percentage: None, .. } => {
-                "Leitura antiga (expirada)".to_string()
-            }
+            BatteryStatus::Stale {
+                last_percentage: None,
+                ..
+            } => "Leitura antiga (expirada)".to_string(),
             BatteryStatus::Unavailable { reason, .. } => format!("Bateria indisponível ({reason})"),
             BatteryStatus::Invalid { reason } => format!("Bateria indisponível ({reason})"),
             BatteryStatus::Unknown => "Bateria indisponível".to_string(),
@@ -369,19 +402,26 @@ impl BatteryStatus {
 
     pub fn display_text_en(&self) -> String {
         match self {
-            BatteryStatus::Available { percentage, charging, .. } => {
+            BatteryStatus::Available {
+                percentage,
+                charging,
+                ..
+            } => {
                 if *charging {
                     format!("{percentage}% (Charging ⚡)")
                 } else {
                     format!("{percentage}%")
                 }
             }
-            BatteryStatus::Charging { percentage: Some(pct), .. } => {
+            BatteryStatus::Charging {
+                percentage: Some(pct),
+                ..
+            } => {
                 format!("{pct}% (Charging ⚡)")
             }
-            BatteryStatus::Charging { percentage: None, .. } => {
-                "Charging detected (percentage unavailable)".to_string()
-            }
+            BatteryStatus::Charging {
+                percentage: None, ..
+            } => "Charging detected (percentage unavailable)".to_string(),
             BatteryStatus::Discharging { percentage } => {
                 format!("{percentage}% (In use)")
             }
@@ -395,31 +435,56 @@ impl BatteryStatus {
 
     pub fn tooltip_pt(&self) -> String {
         match self {
-            BatteryStatus::Available { percentage, charging, source, diagnostic_message, .. } => {
-                let src_str = source.as_ref().map(|s| s.to_string()).unwrap_or_else(|| "Desconhecida".to_string());
-                let state_str = if *charging { "Carregando ⚡" } else { "Em uso" };
+            BatteryStatus::Available {
+                percentage,
+                charging,
+                source,
+                diagnostic_message,
+                ..
+            } => {
+                let src_str = source
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| "Desconhecida".to_string());
+                let state_str = if *charging {
+                    "Carregando ⚡"
+                } else {
+                    "Em uso"
+                };
                 let msg = diagnostic_message.as_deref().unwrap_or("");
 
                 if msg.is_empty() {
                     format!("Nível: {percentage}%\nEstado: {state_str}\nOrigem: {src_str}")
                 } else {
-                    format!("Nível: {percentage}%\nEstado: {state_str}\nOrigem: {src_str}\nInfo: {msg}")
+                    format!(
+                        "Nível: {percentage}%\nEstado: {state_str}\nOrigem: {src_str}\nInfo: {msg}"
+                    )
                 }
             }
             BatteryStatus::Charging { percentage, source } => {
-                let pct_str = percentage.map(|p| format!("{p}%")).unwrap_or_else(|| "N/A".to_string());
+                let pct_str = percentage
+                    .map(|p| format!("{p}%"))
+                    .unwrap_or_else(|| "N/A".to_string());
                 format!("Nível: {pct_str}\nEstado: Carregando ⚡\nFonte de Energia: {source}")
             }
             BatteryStatus::Discharging { percentage } => {
                 format!("Nível: {percentage}%\nEstado: Em uso")
             }
             BatteryStatus::Full => "Nível: 100%\nEstado: Bateria Completa".to_string(),
-            BatteryStatus::Stale { last_percentage, age_seconds } => {
-                let pct_str = last_percentage.map(|p| format!("{p}%")).unwrap_or_else(|| "N/A".to_string());
+            BatteryStatus::Stale {
+                last_percentage,
+                age_seconds,
+            } => {
+                let pct_str = last_percentage
+                    .map(|p| format!("{p}%"))
+                    .unwrap_or_else(|| "N/A".to_string());
                 format!("Bateria Antiga\nÚltimo Nível: {pct_str}\nIdade: {age_seconds} segundos")
             }
             BatteryStatus::Unavailable { reason, source } => {
-                let src_str = source.as_ref().map(|s| s.to_string()).unwrap_or_else(|| "N/A".to_string());
+                let src_str = source
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| "N/A".to_string());
                 format!("Bateria Indisponível\nMotivo: {reason}\nOrigem: {src_str}")
             }
             BatteryStatus::Invalid { reason } => {
@@ -449,7 +514,9 @@ impl From<BatteryReading> for BatteryStatus {
                     }
                 } else {
                     BatteryStatus::Unavailable {
-                        reason: reading.invalidation_reason.unwrap_or_else(|| "Bateria sem porcentagem informada".to_string()),
+                        reason: reading
+                            .invalidation_reason
+                            .unwrap_or_else(|| "Bateria sem porcentagem informada".to_string()),
                         source: Some(reading.source),
                     }
                 }

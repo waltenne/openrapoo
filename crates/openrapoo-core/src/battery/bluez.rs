@@ -6,10 +6,17 @@ use zbus::zvariant::OwnedValue;
 
 use super::provider::{current_epoch_seconds, BatteryProvider, DeviceIdentity};
 use super::types::{
-    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity, RawProviderData,
+    BatteryConfidence, BatteryReading, BatterySource, BatteryState, BatteryValidity,
+    RawProviderData,
 };
 
 pub struct BluezBatteryProvider;
+
+impl Default for BluezBatteryProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl BluezBatteryProvider {
     pub fn new() -> Self {
@@ -35,12 +42,17 @@ impl BatteryProvider for BluezBatteryProvider {
     }
 
     fn query(&self, device: &DeviceIdentity, log: &mut Vec<String>) -> Option<BatteryReading> {
-        log.push("Consultando BlueZ D-Bus para interface org.bluez.Battery1 e org.bluez.Device1...".to_string());
+        log.push(
+            "Consultando BlueZ D-Bus para interface org.bluez.Battery1 e org.bluez.Device1..."
+                .to_string(),
+        );
 
         let conn = match Connection::system() {
             Ok(c) => c,
             Err(e) => {
-                log.push(format!("Falha ao conectar ao D-Bus de sistema para BlueZ: {e}"));
+                log.push(format!(
+                    "Falha ao conectar ao D-Bus de sistema para BlueZ: {e}"
+                ));
                 return None;
             }
         };
@@ -58,7 +70,8 @@ impl BatteryProvider for BluezBatteryProvider {
             }
         };
 
-        type ManagedObjects = HashMap<zbus::zvariant::OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
+        type ManagedObjects =
+            HashMap<zbus::zvariant::OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
         let objects: ManagedObjects = match manager_proxy.call("GetManagedObjects", &()) {
             Ok(objs) => objs,
             Err(e) => {
@@ -67,10 +80,15 @@ impl BatteryProvider for BluezBatteryProvider {
             }
         };
 
-        log.push(format!("Objetos gerenciados pelo BlueZ encontrados: {}", objects.len()));
+        log.push(format!(
+            "Objetos gerenciados pelo BlueZ encontrados: {}",
+            objects.len()
+        ));
 
         for (path, interfaces) in objects {
-            if !interfaces.contains_key("org.bluez.Battery1") && !interfaces.contains_key("org.bluez.Device1") {
+            if !interfaces.contains_key("org.bluez.Battery1")
+                && !interfaces.contains_key("org.bluez.Device1")
+            {
                 continue;
             }
 
@@ -114,7 +132,13 @@ impl BatteryProvider for BluezBatteryProvider {
                 }
             }
 
-            let combined_device_info = format!("{} {} {} {}", alias.to_lowercase(), name.to_lowercase(), address.to_lowercase(), path_str.to_lowercase());
+            let combined_device_info = format!(
+                "{} {} {} {}",
+                alias.to_lowercase(),
+                name.to_lowercase(),
+                address.to_lowercase(),
+                path_str.to_lowercase()
+            );
 
             // Match against device identity
             let is_match = is_bluez_match(device, &combined_device_info, &address);
@@ -125,14 +149,20 @@ impl BatteryProvider for BluezBatteryProvider {
             log.push(format!("Dispositivo BlueZ correspondente encontrado em '{path_str}' (MAC: {address}, Conectado: {is_connected})"));
 
             if !interfaces.contains_key("org.bluez.Battery1") {
-                log.push(format!("Interface org.bluez.Battery1 ausente no objeto BlueZ '{path_str}'"));
+                log.push(format!(
+                    "Interface org.bluez.Battery1 ausente no objeto BlueZ '{path_str}'"
+                ));
                 continue;
             }
 
-            log.push(format!("Interface org.bluez.Battery1 encontrada em '{path_str}'"));
+            log.push(format!(
+                "Interface org.bluez.Battery1 encontrada em '{path_str}'"
+            ));
 
             if !is_connected {
-                log.push(format!("Dispositivo BlueZ '{path_str}' desconectado (Connected=false)."));
+                log.push(format!(
+                    "Dispositivo BlueZ '{path_str}' desconectado (Connected=false)."
+                ));
                 return Some(BatteryReading {
                     percentage: None,
                     state: BatteryState::DeviceDisconnected,
@@ -190,7 +220,9 @@ impl BatteryProvider for BluezBatteryProvider {
 
             if let Some(pct) = percentage {
                 if pct > 100 {
-                    log.push(format!("Percentage de {pct}% rejeitado por valor inválido (>100%)"));
+                    log.push(format!(
+                        "Percentage de {pct}% rejeitado por valor inválido (>100%)"
+                    ));
                     return Some(BatteryReading {
                         percentage: Some(pct),
                         state: BatteryState::Unknown,
@@ -205,8 +237,12 @@ impl BatteryProvider for BluezBatteryProvider {
                         reading_confidence: BatteryConfidence::Rejected,
                         reading_valid: false,
                         is_stale: false,
-                        validity: BatteryValidity::Invalid { reason: format!("Percentage de {pct}% acima de 100%") },
-                        invalidation_reason: Some(format!("Percentage de {pct}% rejeitado por valor inválido")),
+                        validity: BatteryValidity::Invalid {
+                            reason: format!("Percentage de {pct}% acima de 100%"),
+                        },
+                        invalidation_reason: Some(format!(
+                            "Percentage de {pct}% rejeitado por valor inválido"
+                        )),
                         alternative_source: None,
                         conflict_status: None,
                         raw_data: Some(RawProviderData {
@@ -222,7 +258,9 @@ impl BatteryProvider for BluezBatteryProvider {
 
                 // If 0% on BlueZ without confirmation, mark as unconfirmed
                 if pct == 0 {
-                    log.push(format!("BlueZ reportou 0% para {path_str}. Marcando como não confirmada."));
+                    log.push(format!(
+                        "BlueZ reportou 0% para {path_str}. Marcando como não confirmada."
+                    ));
                     return Some(BatteryReading {
                         percentage: Some(0),
                         state: BatteryState::Unknown,
@@ -273,7 +311,11 @@ impl BatteryProvider for BluezBatteryProvider {
                     source: BatterySource::BlueZ,
                     timestamp: current_epoch_seconds(),
                     device_identifier: device.name.clone(),
-                    connection: if bt_source.is_empty() { "bluetooth".to_string() } else { format!("bluetooth_{bt_source}") },
+                    connection: if bt_source.is_empty() {
+                        "bluetooth".to_string()
+                    } else {
+                        format!("bluetooth_{bt_source}")
+                    },
                     confidence: BatteryConfidence::High,
                     device_match_confidence: BatteryConfidence::High,
                     reading_confidence: BatteryConfidence::High,
@@ -302,9 +344,12 @@ impl BatteryProvider for BluezBatteryProvider {
                     reading_valid: false,
                     is_stale: false,
                     validity: BatteryValidity::Invalid {
-                        reason: "Propriedade Percentage ausente na interface org.bluez.Battery1".to_string(),
+                        reason: "Propriedade Percentage ausente na interface org.bluez.Battery1"
+                            .to_string(),
                     },
-                    invalidation_reason: Some(format!("Battery1 encontrada em {path_str}, mas propriedade Percentage ausente")),
+                    invalidation_reason: Some(format!(
+                        "Battery1 encontrada em {path_str}, mas propriedade Percentage ausente"
+                    )),
                     alternative_source: None,
                     conflict_status: None,
                     raw_data: Some(RawProviderData {
@@ -334,10 +379,8 @@ fn is_bluez_match(device: &DeviceIdentity, combined: &str, address: &str) -> boo
         if comb_lower.contains("keyboard") {
             return false;
         }
-    } else if device.device_type == DeviceType::Keyboard {
-        if comb_lower.contains("mouse") {
-            return false;
-        }
+    } else if device.device_type == DeviceType::Keyboard && comb_lower.contains("mouse") {
+        return false;
     }
 
     // Strict MAC address matching
@@ -357,18 +400,27 @@ fn is_bluez_match(device: &DeviceIdentity, combined: &str, address: &str) -> boo
     // Match by physical path / phys
     if let Some(ref phys) = device.phys {
         let p_clean = phys.to_lowercase().replace([':', '_', '-'], "");
-        if !p_clean.is_empty() && (comb_clean.contains(&p_clean) || (!addr_clean.is_empty() && p_clean.contains(&addr_clean))) {
+        if !p_clean.is_empty()
+            && (comb_clean.contains(&p_clean)
+                || (!addr_clean.is_empty() && p_clean.contains(&addr_clean)))
+        {
             return true;
         }
     }
 
     // Model specific matching
     if dev_lower.contains("e9050") || device.device_type == DeviceType::Keyboard {
-        return (comb_lower.contains("e9050") || comb_lower.contains("keyboard") || comb_lower.contains("kbd")) && !comb_lower.contains("mouse");
+        return (comb_lower.contains("e9050")
+            || comb_lower.contains("keyboard")
+            || comb_lower.contains("kbd"))
+            && !comb_lower.contains("mouse");
     }
 
     if dev_lower.contains("mt760") || device.device_type == DeviceType::Mouse {
-        return (comb_lower.contains("mt760") || comb_lower.contains("mouse") || comb_lower.contains("bt mouse")) && !comb_lower.contains("keyboard");
+        return (comb_lower.contains("mt760")
+            || comb_lower.contains("mouse")
+            || comb_lower.contains("bt mouse"))
+            && !comb_lower.contains("keyboard");
     }
 
     false
@@ -387,11 +439,7 @@ fn extract_string_value(val: &OwnedValue) -> String {
 }
 
 fn extract_bool_value(val: &OwnedValue) -> bool {
-    if let Ok(b) = bool::try_from(val) {
-        b
-    } else {
-        false
-    }
+    bool::try_from(val).unwrap_or_default()
 }
 
 pub fn extract_u8_value(val: &OwnedValue) -> Option<u8> {

@@ -88,10 +88,7 @@ fn test_config_path_resolution_never_root_for_normal_users() {
     let path_sudo =
         ProfileStore::resolve_config_path_internal(Some(&test_user), None, Some("/root"));
     let home_dir = dirs::home_dir().unwrap_or_else(|| PathBuf::from(format!("/home/{test_user}")));
-    assert_eq!(
-        path_sudo,
-        home_dir.join(".config/openrapoo/profiles.json")
-    );
+    assert_eq!(path_sudo, home_dir.join(".config/openrapoo/profiles.json"));
     assert!(!path_sudo.to_string_lossy().contains("/root/"));
 }
 
