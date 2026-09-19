@@ -133,6 +133,7 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.version_check.outputs.version }}
           files: |
             dist/*.deb
             dist/*.AppImage
