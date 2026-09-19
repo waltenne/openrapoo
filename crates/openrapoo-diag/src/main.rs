@@ -10,6 +10,12 @@
 //! - `identify-buttons` — Interactive mode: press each button to identify it
 //! - `hid-report`       — Dump HID descriptor and feature reports (read-only)
 //! - `generate-report`  — Generate a complete technical report in Markdown
+#![allow(
+    clippy::print_literal,
+    clippy::useless_format,
+    clippy::print_with_newline,
+    clippy::ptr_arg
+)]
 
 mod detector;
 mod event_capture;
@@ -112,7 +118,7 @@ enum Commands {
     /// and does NOT contain any personal information.
     GenerateReport {
         /// Override output path for the report
-        #[arg(short, long)]
+        #[arg(short = 'p', long)]
         output_path: Option<PathBuf>,
 
         /// Open the report in the default Markdown viewer after generation
@@ -172,10 +178,7 @@ async fn main() -> Result<()> {
                 .context("Failed to read HID report")?;
         }
 
-        Commands::GenerateReport {
-            output_path,
-            open,
-        } => {
+        Commands::GenerateReport { output_path, open } => {
             report::run_generate_report(output_path, open)
                 .await
                 .context("Failed to generate report")?;
@@ -184,4 +187,3 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
-

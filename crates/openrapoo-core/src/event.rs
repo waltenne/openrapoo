@@ -64,9 +64,9 @@ impl ButtonCode {
     /// Parse from a raw evdev KEY/BTN code.
     pub fn from_raw(code: u16) -> Self {
         match code {
-            0x110 => ButtonCode::Left,   // BTN_LEFT
-            0x111 => ButtonCode::Right,  // BTN_RIGHT
-            0x112 => ButtonCode::Middle, // BTN_MIDDLE
+            0x110 => ButtonCode::Left,        // BTN_LEFT
+            0x111 => ButtonCode::Right,       // BTN_RIGHT
+            0x112 => ButtonCode::Middle,      // BTN_MIDDLE
             0x113 => ButtonCode::SideBack,    // BTN_SIDE
             0x114 => ButtonCode::SideForward, // BTN_EXTRA
             other => ButtonCode::Other(other),
@@ -98,4 +98,3 @@ pub enum ScrollAxis {
     Vertical,
     Horizontal,
 }
-

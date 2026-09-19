@@ -34,8 +34,12 @@ pub async fn run_capture_events(
     println!("  ─────────────────────────────────────────────");
     println!();
 
-    let mut device = Device::open(&path)
-        .with_context(|| format!("Não foi possível abrir {}: verifique permissões (grupo 'input')", path.display()))?;
+    let mut device = Device::open(&path).with_context(|| {
+        format!(
+            "Não foi possível abrir {}: verifique permissões (grupo 'input')",
+            path.display()
+        )
+    })?;
 
     let device_name = device.name().unwrap_or("(sem nome)").to_string();
     println!("  Dispositivo: {device_name}");
@@ -47,8 +51,14 @@ pub async fn run_capture_events(
     match format {
         OutputFormat::Human => {
             if raw {
-                println!("  {:>16}  {:>8}  {:>8}  {:>8}  {}", "timestamp_µs", "type", "code", "value", "description");
-                println!("  {:->16}  {:->8}  {:->8}  {:->8}  {}", "", "", "", "", "─────────────");
+                println!(
+                    "  {:>16}  {:>8}  {:>8}  {:>8}  {}",
+                    "timestamp_µs", "type", "code", "value", "description"
+                );
+                println!(
+                    "  {:->16}  {:->8}  {:->8}  {:->8}  {}",
+                    "", "", "", "", "─────────────"
+                );
             } else {
                 println!("  {:>16}  {:>40}  {}", "timestamp_µs", "evento", "detalhe");
                 println!("  {:->16}  {:->40}  {}", "", "", "─────────────");
@@ -63,9 +73,8 @@ pub async fn run_capture_events(
 
     loop {
         // tokio::select! to allow graceful Ctrl+C handling
-        let events = tokio::task::block_in_place(|| {
-            device.fetch_events().map(|e| e.collect::<Vec<_>>())
-        });
+        let events =
+            tokio::task::block_in_place(|| device.fetch_events().map(|e| e.collect::<Vec<_>>()));
 
         let events = match events {
             Ok(e) => e,
@@ -178,10 +187,22 @@ fn decode_event(ts_us: u64, ev_type: EventType, code: u16, value: i32) -> MouseE
             })
         }
         EventType::RELATIVE => match code {
-            0 => MouseEventKind::Movement { axis: Axis::X, delta: value },
-            1 => MouseEventKind::Movement { axis: Axis::Y, delta: value },
-            8 => MouseEventKind::Scroll { axis: ScrollAxis::Vertical, delta: value },
-            6 => MouseEventKind::Scroll { axis: ScrollAxis::Horizontal, delta: value },
+            0 => MouseEventKind::Movement {
+                axis: Axis::X,
+                delta: value,
+            },
+            1 => MouseEventKind::Movement {
+                axis: Axis::Y,
+                delta: value,
+            },
+            8 => MouseEventKind::Scroll {
+                axis: ScrollAxis::Vertical,
+                delta: value,
+            },
+            6 => MouseEventKind::Scroll {
+                axis: ScrollAxis::Horizontal,
+                delta: value,
+            },
             _ => MouseEventKind::Unknown,
         },
         EventType::SYNCHRONIZATION => MouseEventKind::Sync,
@@ -212,15 +233,30 @@ fn describe_event(event: &MouseEvent) -> (String, String) {
         }
         MouseEventKind::Scroll { axis, delta } => {
             let dir = match axis {
-                ScrollAxis::Vertical => if *delta > 0 { "↓" } else { "↑" },
-                ScrollAxis::Horizontal => if *delta > 0 { "→" } else { "←" },
+                ScrollAxis::Vertical => {
+                    if *delta > 0 {
+                        "↓"
+                    } else {
+                        "↑"
+                    }
+                }
+                ScrollAxis::Horizontal => {
+                    if *delta > 0 {
+                        "→"
+                    } else {
+                        "←"
+                    }
+                }
             };
             (format!("Scroll {:?} {dir}", axis), format!("delta={delta}"))
         }
         MouseEventKind::Sync => ("SYNC".to_string(), String::new()),
         MouseEventKind::Unknown => (
             "Unknown".to_string(),
-            format!("type={} code={} value={}", event.raw_type, event.raw_code, event.raw_value),
+            format!(
+                "type={} code={} value={}",
+                event.raw_type, event.raw_code, event.raw_value
+            ),
         ),
     }
 }

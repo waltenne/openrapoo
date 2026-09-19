@@ -47,8 +47,8 @@ impl GroupMembershipState {
 /// Content of the official OpenRapoo udev rules file.
 pub const OPENRAPOO_UDEV_RULES_CONTENT: &str = r#"# Rapoo MT760 Pro (Receptor 2.4 GHz Wireless / ITON Corp. VID: 0x24AE, PID: 0x186A)
 # Allows read/write access for members of the 'input' group and desktop users via uaccess
-SUBSYSTEM=="hidraw", ATTRS{idVendor}=="24ae", ATTRS{idProduct}=="186a", TAG+="uaccess", GROUP="input", MODE="0660"
-SUBSYSTEM=="input", ATTRS{idVendor}=="24ae", ATTRS{idProduct}=="186a", TAG+="uaccess", GROUP="input", MODE="0660"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="24[aA][eE]", ATTRS{idProduct}=="18[6bB][aA]", TAG+="uaccess", GROUP="input", MODE="0660"
+SUBSYSTEM=="input", ATTRS{idVendor}=="24[aA][eE]", ATTRS{idProduct}=="18[6bB][aA]", TAG+="uaccess", GROUP="input", MODE="0660"
 KERNEL=="uinput", GROUP="input", MODE="0660"
 "#;
 
@@ -170,7 +170,10 @@ pub fn install_udev_rules(custom_target_dir: Option<&Path>) -> Result<PathBuf, O
     }
 
     fs::write(&target_file, OPENRAPOO_UDEV_RULES_CONTENT)?;
-    info!("Regras udev instaladas com sucesso em {}", target_file.display());
+    info!(
+        "Regras udev instaladas com sucesso em {}",
+        target_file.display()
+    );
 
     // Only attempt udevadm if writing to standard system location
     if custom_target_dir.is_none() {

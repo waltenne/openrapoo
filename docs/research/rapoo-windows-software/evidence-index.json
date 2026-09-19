@@ -1,0 +1,94 @@
+{
+  "metadata": {
+    "project": "OpenRapoo Windows Software Reverse-Engineering Research",
+    "target_dir": "/media/user/Games 2/A HUB",
+    "analysis_date": "2026-09-17",
+    "total_files_analyzed": 938,
+    "total_symbols_demangled": 3787
+  },
+  "evidence_entries": [
+    {
+      "key": "CORE_BACKEND_DLL",
+      "file_path": "RapooDevice.dll",
+      "size_bytes": 3460096,
+      "sha256": "7f1e948a3194098481eb081c78e47ec05fbdf9845210214a1e9569234b6e5114",
+      "confidence": "CONFIRMED",
+      "description": "Primary C++ Qt plugin DLL for Windows HID subsystem interaction."
+    },
+    {
+      "key": "STATIC_SYMBOL_ARCHIVE",
+      "file_path": "libRapooDevice.a",
+      "size_bytes": 604160,
+      "sha256": "3a5796b291c944bf83df7819bfd021ab07e155097df5a2c4e12e347781a91e54",
+      "confidence": "CONFIRMED",
+      "description": "C++ static library containing 3,787 demangled symbols for BaseDevice, QueryDevice, and pairing handlers."
+    },
+    {
+      "key": "MAIN_APPLICATION_EXE",
+      "file_path": "A HUB.exe",
+      "size_bytes": 330464496,
+      "sha256": "9e86e1c4a3bf8468995df4fe73645d2a67c9bf1e27dd066e42db5c11595c8b6a",
+      "confidence": "CONFIRMED",
+      "description": "Main Qt 5.15.2 desktop application bundle containing embedded QML resources."
+    },
+    {
+      "key": "FIRMWARE_IMAGE_CODE_2M",
+      "file_path": "code_2M.bin",
+      "size_bytes": 2097152,
+      "sha256": "e619fa1905fb559779df3df130a10996fa15d0234a7138b0561bdff60fb00bb8",
+      "confidence": "CONFIRMED",
+      "description": "2MB main MCU flash memory binary image."
+    },
+    {
+      "key": "FIRMWARE_PARAM_128K",
+      "file_path": "param_128K.bin",
+      "size_bytes": 131072,
+      "sha256": "f312891bf6054817d1217e91d0ca5970c657df7a3891456bf1a349b1a1362e55",
+      "confidence": "CONFIRMED",
+      "description": "128KB NVRAM parameter block binary image."
+    },
+    {
+      "key": "BATTERY_TELEMETRY_METHODS",
+      "source_symbols": [
+        "BaseDevice::getBatteryLife(int, int, int, int, int)",
+        "BaseDevice::bleBatteryValueChanged(int)",
+        "BaseDevice::updateBatteryState(int)"
+      ],
+      "confidence": "CONFIRMED",
+      "description": "Static C++ methods for HID Feature polling and BLE battery level notifications."
+    },
+    {
+      "key": "DPI_POLLING_METHODS",
+      "source_symbols": [
+        "BaseDevice::setDPIListInfo(QList<int>)",
+        "BaseDevice::setCurDPIGear(int)",
+        "BaseDevice::setCurDpiColorList(QList<QColor>)",
+        "BaseDevice::emitReturnRateChange(int)"
+      ],
+      "confidence": "CONFIRMED",
+      "description": "Methods governing 7 DPI gears, X/Y axis tuning, and 125Hz-4000Hz polling rate switching."
+    },
+    {
+      "key": "CHIPSET_PAIRING_CLASSES",
+      "source_symbols": [
+        "DevicePairingForTelinkMouse",
+        "DevicePairingForCh585",
+        "DevicePairingForNordicL15",
+        "DevicePairingNearLink",
+        "FactoryPairingForNearLink",
+        "FactoryPairingForRealtek"
+      ],
+      "confidence": "CONFIRMED",
+      "description": "Hardware chipset handlers supporting Telink, WCH CH585, Nordic L15, NearLink (SparkLink), and Realtek."
+    },
+    {
+      "key": "HID_FEATURE_REPORT_FORMAT",
+      "report_id": "0x07",
+      "direction": "Feature In/Out",
+      "payload_size": 64,
+      "confidence": "HYPOTHESIS",
+      "description": "Vendor Feature Report ID 0x07 used for battery status, DPI adjustment, and key remapping."
+    }
+  ]
+}
+

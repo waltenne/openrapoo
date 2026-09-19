@@ -39,17 +39,28 @@ fn print_human(devices: &[RapooDevice]) {
 
     for (i, device) in devices.iter().enumerate() {
         let num = i + 1;
-        let mt760_marker = if device.is_mt760_pro() { " ← alvo" } else { "" };
+        let mt760_marker = if device.is_mt760_pro() {
+            " ← alvo"
+        } else {
+            ""
+        };
 
         println!();
         println!("  [{num}] {}{mt760_marker}", device.model);
         println!("      Nome:       {}", device.name);
-        println!("      VID:PID:    0x{:04X}:0x{:04X}", device.vendor_id, device.product_id);
+        println!(
+            "      VID:PID:    0x{:04X}:0x{:04X}",
+            device.vendor_id, device.product_id
+        );
         println!("      Conexão:    {}", device.connection);
 
         match &device.evdev_path {
             Some(p) => {
-                let accessible = if device.evdev_accessible() { "✓" } else { "✗ (sem permissão)" };
+                let accessible = if device.evdev_accessible() {
+                    "✓"
+                } else {
+                    "✗ (sem permissão)"
+                };
                 println!("      evdev:      {}  {}", p.display(), accessible);
             }
             None => println!("      evdev:      (não encontrado)"),
@@ -57,7 +68,11 @@ fn print_human(devices: &[RapooDevice]) {
 
         match &device.hidraw_path {
             Some(p) => {
-                let accessible = if device.hidraw_accessible() { "✓" } else { "✗ (sem permissão)" };
+                let accessible = if device.hidraw_accessible() {
+                    "✓"
+                } else {
+                    "✗ (sem permissão)"
+                };
                 println!("      hidraw:     {}  {}", p.display(), accessible);
             }
             None => println!("      hidraw:     (não encontrado)"),
@@ -91,4 +106,3 @@ fn print_json(devices: &[RapooDevice]) -> Result<()> {
     println!("{json}");
     Ok(())
 }
-

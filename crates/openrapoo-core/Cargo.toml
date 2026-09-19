@@ -16,6 +16,8 @@ libc.workspace = true
 chrono = { workspace = true }
 uuid = { workspace = true }
 dirs.workspace = true
+zbus = { workspace = true }
+zvariant = { workspace = true }
 
 [dev-dependencies]
 

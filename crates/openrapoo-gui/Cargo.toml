@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "GTK4 + libadwaita GUI interface for OpenRapoo (Phase 5)"
+description = "GPUI desktop GUI interface for OpenRapoo"
 
 [[bin]]
 name = "openrapoo-gui"
@@ -13,8 +13,10 @@ path = "src/main.rs"
 [dependencies]
 openrapoo-core = { path = "../openrapoo-core" }
 
-gtk4 = { version = "0.9", features = ["v4_12"], optional = true }
-libadwaita = { version = "0.7", features = ["v1_5"], optional = true }
+gpui = { workspace = true }
+gpui_platform = { workspace = true }
+gpui-component = { workspace = true }
+gpui-base = { workspace = true }
 
 thiserror.workspace = true
 anyhow.workspace = true
@@ -25,9 +27,4 @@ tracing-subscriber.workspace = true
 clap.workspace = true
 tokio.workspace = true
 dirs.workspace = true
-
-[features]
-default = []
-gtk = ["dep:gtk4"]
-adw = ["gtk", "dep:libadwaita"]
-
+uuid = { workspace = true }

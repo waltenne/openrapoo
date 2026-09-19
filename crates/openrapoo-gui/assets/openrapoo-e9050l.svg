@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="450" viewBox="0 0 1200 450" role="img" aria-labelledby="title desc">
+  <title id="title">Rapoo E9050L Ultra-Slim Keyboard</title>
+  <desc id="desc">Ilustração vetorial do teclado sem fio multi-dispositivo Rapoo E9050L.</desc>
+
+  <defs>
+    <linearGradient id="kbBody" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2d3139"/>
+      <stop offset="50%" stop-color="#1e2127"/>
+      <stop offset="100%" stop-color="#14161a"/>
+    </linearGradient>
+    <linearGradient id="kbAlloyFrame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a505b"/>
+      <stop offset="15%" stop-color="#2d323b"/>
+      <stop offset="85%" stop-color="#1b1e24"/>
+      <stop offset="100%" stop-color="#0f1115"/>
+    </linearGradient>
+    <linearGradient id="keyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a2e37"/>
+      <stop offset="100%" stop-color="#181a20"/>
+    </linearGradient>
+    <linearGradient id="keySpecial" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#363b47"/>
+      <stop offset="100%" stop-color="#222630"/>
+    </linearGradient>
+    <linearGradient id="accentBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+
+    <filter id="kbShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="12"/>
+      <feOffset dx="0" dy="10" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Shadow & Metallic Body Chassis -->
+  <rect x="50" y="40" width="1100" height="360" rx="18" fill="url(#kbAlloyFrame)" filter="url(#kbShadow)" stroke="#3a404d" stroke-width="2"/>
+  <rect x="65" y="55" width="1070" height="330" rx="12" fill="url(#kbBody)" stroke="#111317" stroke-width="1.5"/>
+
+  <!-- Brand Label & Status LEDs -->
+  <text x="90" y="88" font-family="Inter, Cantarell, sans-serif" font-weight="700" font-size="20" fill="#94a3b8" letter-spacing="2">RAPOO</text>
+  <text x="195" y="88" font-family="Inter, Cantarell, sans-serif" font-weight="400" font-size="14" fill="#64748b" letter-spacing="1">E9050L Multi-Device</text>
+
+  <!-- Status Indicators (BT1, BT2, 2.4G, Battery) -->
+  <g transform="translate(930, 72)">
+    <circle cx="0" cy="0" r="5" fill="#3b82f6"/>
+    <text x="12" y="4" font-family="sans-serif" font-size="11" fill="#94a3b8">2.4G</text>
+
+    <circle cx="65" cy="0" r="4" fill="#22c55e"/>
+    <text x="77" y="4" font-family="sans-serif" font-size="11" fill="#94a3b8">BT1</text>
+
+    <circle cx="125" cy="0" r="4" fill="#64748b"/>
+    <text x="137" y="4" font-family="sans-serif" font-size="11" fill="#64748b">BT2</text>
+  </g>
+
+  <!-- Keyboard Keys Base Grid -->
+  <!-- Row 1: Function Keys -->
+  <g transform="translate(90, 115)">
+    <!-- Esc -->
+    <rect x="0" y="0" width="55" height="36" rx="5" fill="url(#keySpecial)" stroke="#111317"/><text x="15" y="23" font-family="sans-serif" font-size="12" fill="#cbd5e1">Esc</text>
+    <!-- F1-F12 -->
+    <rect x="65" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="80" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F1</text>
+    <rect x="125" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="140" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F2</text>
+    <rect x="185" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="200" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F3</text>
+    <rect x="245" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="260" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F4</text>
+    <rect x="315" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="330" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F5</text>
+    <rect x="375" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="390" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F6</text>
+    <rect x="435" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="450" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F7</text>
+    <rect x="495" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="510" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F8</text>
+    <rect x="555" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="570" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F9</text>
+    <rect x="615" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="625" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F10</text>
+    <rect x="675" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="685" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F11</text>
+    <rect x="735" y="0" width="55" height="36" rx="5" fill="url(#keyGrad)" stroke="#111317"/><text x="745" y="23" font-family="sans-serif" font-size="12" fill="#94a3b8">F12</text>
+    <rect x="800" y="0" width="60" height="36" rx="5" fill="url(#keySpecial)" stroke="#111317"/><text x="812" y="23" font-family="sans-serif" font-size="11" fill="#e2e8f0">Del</text>
+  </g>
+
+  <!-- Row 2: Number Row -->
+  <g transform="translate(90, 160)">
+    <rect x="0" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="21" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">'</text>
+    <rect x="58" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="79" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">1</text>
+    <rect x="116" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="137" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">2</text>
+    <rect x="174" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="195" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">3</text>
+    <rect x="232" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="253" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">4</text>
+    <rect x="290" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="311" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">5</text>
+    <rect x="348" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="369" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">6</text>
+    <rect x="406" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="427" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">7</text>
+    <rect x="464" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="485" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">8</text>
+    <rect x="522" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="543" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">9</text>
+    <rect x="580" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="601" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">0</text>
+    <rect x="638" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="659" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">-</text>
+    <rect x="696" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="717" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">=</text>
+    <rect x="754" y="0" width="106" height="42" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="785" y="26" font-family="sans-serif" font-size="13" fill="#cbd5e1">Backspace</text>
+  </g>
+
+  <!-- Row 3: QWERTY Row -->
+  <g transform="translate(90, 210)">
+    <rect x="0" y="0" width="75" height="42" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="22" y="26" font-family="sans-serif" font-size="13" fill="#cbd5e1">Tab</text>
+    <rect x="81" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="101" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">Q</text>
+    <rect x="139" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="157" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">W</text>
+    <rect x="197" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="218" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">E</text>
+    <rect x="255" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="275" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">R</text>
+    <rect x="313" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="333" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">T</text>
+    <rect x="371" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="391" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">Y</text>
+    <rect x="429" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="449" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">U</text>
+    <rect x="487" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="509" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">I</text>
+    <rect x="545" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="565" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">O</text>
+    <rect x="603" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="623" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">P</text>
+    <rect x="661" y="0" width="83" height="42" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="690" y="26" font-family="sans-serif" font-size="13" fill="#cbd5e1">Enter</text>
+  </g>
+
+  <!-- Row 4: ASDF Row -->
+  <g transform="translate(90, 260)">
+    <rect x="0" y="0" width="90" height="42" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="20" y="26" font-family="sans-serif" font-size="13" fill="#cbd5e1">Caps Lock</text>
+    <rect x="96" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="116" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">A</text>
+    <rect x="154" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="175" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">S</text>
+    <rect x="212" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="232" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">D</text>
+    <rect x="270" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="291" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">F</text>
+    <rect x="328" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="348" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">G</text>
+    <rect x="386" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="406" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">H</text>
+    <rect x="444" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="466" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">J</text>
+    <rect x="502" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="522" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">K</text>
+    <rect x="560" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="581" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">L</text>
+    <rect x="618" y="0" width="52" height="42" rx="6" fill="url(#keyGrad)" stroke="#111317"/><text x="638" y="26" font-family="sans-serif" font-size="14" fill="#cbd5e1">Ç</text>
+    <rect x="676" y="0" width="184" height="42" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="745" y="26" font-family="sans-serif" font-size="13" fill="#cbd5e1">Enter</text>
+  </g>
+
+  <!-- Row 5: Bottom Space Row -->
+  <g transform="translate(90, 310)">
+    <rect x="0" y="0" width="65" height="44" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="18" y="27" font-family="sans-serif" font-size="12" fill="#cbd5e1">Ctrl</text>
+    <rect x="71" y="0" width="65" height="44" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="91" y="27" font-family="sans-serif" font-size="12" fill="#cbd5e1">Fn</text>
+    <rect x="142" y="0" width="65" height="44" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="160" y="27" font-family="sans-serif" font-size="12" fill="#cbd5e1">Alt</text>
+    <!-- Spacebar -->
+    <rect x="213" y="0" width="360" height="44" rx="6" fill="url(#keyGrad)" stroke="#111317"/>
+    <rect x="579" y="0" width="65" height="44" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="597" y="27" font-family="sans-serif" font-size="12" fill="#cbd5e1">Alt</text>
+    <rect x="650" y="0" width="65" height="44" rx="6" fill="url(#keySpecial)" stroke="#111317"/><text x="668" y="27" font-family="sans-serif" font-size="12" fill="#cbd5e1">Ctrl</text>
+    <!-- Arrow keys -->
+    <g transform="translate(725, 0)">
+      <rect x="0" y="22" width="42" height="22" rx="4" fill="url(#keyGrad)" stroke="#111317"/><text x="16" y="37" font-family="sans-serif" font-size="12" fill="#cbd5e1">◄</text>
+      <rect x="46" y="0" width="42" height="22" rx="4" fill="url(#keyGrad)" stroke="#111317"/><text x="62" y="15" font-family="sans-serif" font-size="12" fill="#cbd5e1">▲</text>
+      <rect x="46" y="22" width="42" height="22" rx="4" fill="url(#keyGrad)" stroke="#111317"/><text x="62" y="37" font-family="sans-serif" font-size="12" fill="#cbd5e1">▼</text>
+      <rect x="92" y="22" width="42" height="22" rx="4" fill="url(#keyGrad)" stroke="#111317"/><text x="108" y="37" font-family="sans-serif" font-size="12" fill="#cbd5e1">►</text>
+    </g>
+  </g>
+</svg>

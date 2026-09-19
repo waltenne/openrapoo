@@ -1,0 +1,134 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  publish-release:
+    name: Build & Publish Release Artifacts
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Tag & Workspace Version
+        id: version_check
+        run: |
+          TAG_NAME="${GITHUB_REF_NAME}"
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "main" ]; then
+            TAG_NAME="v$(grep -m1 '^version = ' Cargo.toml | cut -d '"' -f2)"
+          fi
+          
+          # Remove leading 'v'
+          TAG_VERSION="${TAG_NAME#v}"
+          CARGO_VERSION=$(grep -m1 '^version = ' Cargo.toml | cut -d '"' -f2)
+          
+          echo "Tag Version: ${TAG_VERSION}"
+          echo "Cargo Version: ${CARGO_VERSION}"
+          
+          if [ "${TAG_VERSION}" != "${CARGO_VERSION}" ]; then
+            echo "::error::Tag version (${TAG_VERSION}) does not match Cargo.toml version (${CARGO_VERSION})!"
+            exit 1
+          fi
+          
+          echo "version=${TAG_VERSION}" >> $GITHUB_OUTPUT
+          
+          IS_PRERELEASE="false"
+          if echo "${TAG_NAME}" | grep -qE "(alpha|beta|rc)"; then
+            IS_PRERELEASE="true"
+          fi
+          echo "prerelease=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
+
+      - name: Install system dependencies & appimagetool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libhidapi-dev \
+            libudev-dev \
+            libevdev-dev \
+            libdbus-1-dev \
+            desktop-file-utils \
+            curl \
+            squashfs-tools
+          
+          # Install appimagetool for AppImage generation
+          sudo curl -sSL -o /usr/local/bin/appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          sudo chmod +x /usr/local/bin/appimagetool
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run workspace tests
+        run: cargo test --workspace
+
+      - name: Execute master packaging suite
+        run: |
+          chmod +x packaging/build-all.sh packaging/deb/build-deb.sh packaging/appimage/build-appimage.sh
+          ./packaging/build-all.sh
+
+      - name: Generate SHA-256 Checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Generate Release Notes
+        run: |
+          cat << 'EOF' > dist/release-notes.md
+          # OpenRapoo Release ${{ steps.version_check.outputs.version }}
+
+          Native Linux configuration tool & daemon for Rapoo MT760 Pro mouse and Rapoo devices.
+
+          ## Highlights
+          - 🎯 DPI Sensitivity & Polling Rate customization (125, 250, 500, 1000 Hz)
+          - 🎛️ Button remapping via evdev/uinput daemon
+          - 🔋 Real-time multi-provider battery monitoring (UPower, BlueZ, HID raw)
+          - 🌐 Internationalization (English & Português do Brasil)
+          - 📦 Packaged as `.deb` and standalone `AppImage`
+
+          ## Installation
+
+          ### Debian / Ubuntu (.deb)
+          ```bash
+          sudo dpkg -i openrapoo_${{ steps.version_check.outputs.version }}_amd64.deb
+          sudo apt install -f
+          ```
+
+          ### AppImage (Standalone)
+          ```bash
+          chmod +x OpenRapoo-${{ steps.version_check.outputs.version }}-x86_64.AppImage
+          ./OpenRapoo-${{ steps.version_check.outputs.version }}-x86_64.AppImage
+          ```
+
+          ---
+          *Verify download integrity using `SHA256SUMS`.*
+          EOF
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.deb
+            dist/*.AppImage
+            dist/*.tar.gz
+            dist/SHA256SUMS
+          body_path: dist/release-notes.md
+          prerelease: ${{ steps.version_check.outputs.prerelease == 'true' }}
+          draft: false
+

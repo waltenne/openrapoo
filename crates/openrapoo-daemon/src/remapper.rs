@@ -5,16 +5,18 @@ use anyhow::{Context, Result};
 use evdev::{Device, EventType, InputEvent, Key};
 use openrapoo_core::{
     config::{ButtonAction, MouseButton, ProfileStore},
-    device::detect_rapoo_devices,
+    device::{detect_rapoo_devices, DeviceType},
 };
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
+use tokio::io::unix::AsyncFd;
 use tracing::{debug, error, info, warn};
 
 /// Remapping engine configuration.
 pub struct RemapperConfig {
     pub device_path: Option<PathBuf>,
+    #[allow(dead_code)]
     pub config_path: Option<PathBuf>,
     pub dry_run: bool,
 }
@@ -22,25 +24,18 @@ pub struct RemapperConfig {
 /// Main remapping service instance.
 pub struct Remapper {
     config: RemapperConfig,
-    profile_store: ProfileStore,
+    profile_store: Arc<RwLock<ProfileStore>>,
     virtual_dev: Option<OpenRapooVirtualDevice>,
     shutdown_signal: Arc<AtomicBool>,
 }
 
 impl Remapper {
     /// Create a new Remapper instance.
-    pub fn new(config: RemapperConfig, shutdown_signal: Arc<AtomicBool>) -> Result<Self> {
-        let config_file = config
-            .config_path
-            .clone()
-            .unwrap_or_else(ProfileStore::default_config_path);
-
-        let profile_store = ProfileStore::load_from_file(&config_file)
-            .unwrap_or_else(|e| {
-                warn!("Could not load config file: {e}. Using defaults.");
-                ProfileStore::default()
-            });
-
+    pub fn new(
+        config: RemapperConfig,
+        profile_store: Arc<RwLock<ProfileStore>>,
+        shutdown_signal: Arc<AtomicBool>,
+    ) -> Result<Self> {
         let virtual_dev = if config.dry_run {
             info!("Running in DRY-RUN mode — virtual device will not be created.");
             None
@@ -75,21 +70,41 @@ impl Remapper {
                 continue;
             }
 
-            info!("Discovered {} Rapoo input node(s). Opening devices...", evdev_paths.len());
+            info!(
+                "Discovered {} Rapoo mouse input node(s). Opening devices...",
+                evdev_paths.len()
+            );
 
             let mut devices = Vec::new();
             for path in &evdev_paths {
                 match Device::open(path) {
                     Ok(mut dev) => {
                         let name = dev.name().unwrap_or("Unknown").to_string();
-                        if !self.config.dry_run {
+                        let name_lower = name.to_lowercase();
+                        let is_keyboard_node = name_lower.contains("keyboard")
+                            || name_lower.contains("teclado")
+                            || name_lower.contains("e9050")
+                            || name_lower.contains("kbd");
+
+                        if is_keyboard_node {
+                            info!(
+                                "Device {} ({name}) is a keyboard node — leaving ungrabbed for system typing.",
+                                path.display()
+                            );
+                        } else if !self.config.dry_run {
                             if let Err(e) = dev.grab() {
-                                warn!("Could not grab device {}: {e}. Events may leak to OS.", path.display());
+                                warn!(
+                                    "Could not grab device {}: {e}. Events may leak to OS.",
+                                    path.display()
+                                );
                             } else {
                                 info!("Grabbed exclusive access on {} ({name})", path.display());
                             }
                         } else {
-                            info!("DRY-RUN: Inspecting {} ({name}) without grab", path.display());
+                            info!(
+                                "DRY-RUN: Inspecting {} ({name}) without grab",
+                                path.display()
+                            );
                         }
                         devices.push((path.clone(), dev));
                     }
@@ -100,56 +115,77 @@ impl Remapper {
             }
 
             if devices.is_empty() {
-                warn!("No Rapoo input nodes could be opened. Retrying in 5 seconds...");
+                warn!("No Rapoo mouse input nodes could be opened. Retrying in 5 seconds...");
                 tokio::time::sleep(std::time::Duration::from_secs(5)).await;
                 continue;
             }
 
-            info!("Remapping engine active on {} device node(s)", devices.len());
+            let (tx, mut rx) = tokio::sync::mpsc::channel::<(PathBuf, Vec<InputEvent>)>(100);
+            let shutdown_signal = self.shutdown_signal.clone();
+            let dry_run = self.config.dry_run;
 
-            // Device monitoring loop
-            let mut device_disconnected = false;
-            while !self.shutdown_signal.load(Ordering::Relaxed) && !device_disconnected {
-                let mut processed_any = false;
-
-                for (path, dev) in &mut devices {
-                    let events_res = tokio::task::block_in_place(|| {
-                        dev.fetch_events().map(|e| e.collect::<Vec<_>>())
-                    });
-
-                    match events_res {
-                        Ok(events) => {
-                            if !events.is_empty() {
-                                processed_any = true;
-                                self.process_events(path, &events);
-                            }
-                        }
+            for (path, dev) in devices {
+                let tx = tx.clone();
+                let shutdown = shutdown_signal.clone();
+                tokio::spawn(async move {
+                    let mut async_dev = match AsyncFd::new(dev) {
+                        Ok(ad) => ad,
                         Err(e) => {
-                            if e.kind() == std::io::ErrorKind::Interrupted {
-                                continue;
+                            warn!("Failed to create AsyncFd for {}: {e}", path.display());
+                            return;
+                        }
+                    };
+
+                    while !shutdown.load(Ordering::Relaxed) {
+                        let mut guard = match async_dev.readable_mut().await {
+                            Ok(g) => g,
+                            Err(_) => break,
+                        };
+
+                        let events_res = guard
+                            .get_inner_mut()
+                            .fetch_events()
+                            .map(|e| e.collect::<Vec<_>>());
+
+                        match events_res {
+                            Ok(ev_vec) => {
+                                if !ev_vec.is_empty()
+                                    && tx.send((path.clone(), ev_vec)).await.is_err()
+                                {
+                                    break;
+                                }
+                                guard.retain_ready();
                             }
-                            warn!("Device {} disconnected or I/O error: {e}", path.display());
-                            device_disconnected = true;
-                            break;
+                            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                                guard.clear_ready();
+                            }
+                            Err(e) => {
+                                warn!("Device {} disconnected or error: {e}", path.display());
+                                break;
+                            }
                         }
                     }
-                }
 
-                if !processed_any && !device_disconnected {
-                    tokio::time::sleep(std::time::Duration::from_millis(5)).await;
+                    if !dry_run {
+                        let _ = async_dev.into_inner().ungrab();
+                        info!("Released grab on {}", path.display());
+                    }
+                });
+            }
+            drop(tx); // Drop local tx so rx closes when all device tasks exit
+
+            // Main event dispatch loop (0% CPU when idle, epoll-driven)
+            while let Some((path, events)) = rx.recv().await {
+                if self.shutdown_signal.load(Ordering::Relaxed) {
+                    break;
                 }
+                self.process_events(&path, &events);
             }
 
-            // Cleanup current device grab before reconnecting or exiting
-            for (path, mut dev) in devices {
-                if !self.config.dry_run {
-                    let _ = dev.ungrab();
-                    info!("Released grab on {}", path.display());
-                }
-            }
-
-            if device_disconnected {
-                info!("Rapoo mouse disconnected. Will attempt reconnect...");
+            if !self.shutdown_signal.load(Ordering::Relaxed) {
+                info!(
+                    "Rapoo mouse disconnected or endpoint closed. Will attempt reconnect in 3s..."
+                );
                 tokio::time::sleep(std::time::Duration::from_secs(3)).await;
             }
         }
@@ -158,7 +194,7 @@ impl Remapper {
         Ok(())
     }
 
-    /// Resolve target evdev device paths.
+    /// Resolve target evdev device paths. Strictly filters for DeviceType::Mouse.
     fn resolve_device_paths(&self) -> Result<Vec<PathBuf>> {
         if let Some(ref path) = self.config.device_path {
             return Ok(vec![path.clone()]);
@@ -167,10 +203,17 @@ impl Remapper {
         let detected = detect_rapoo_devices()?;
         let mut paths = Vec::new();
         for d in detected {
-            if let Some(p) = d.evdev_path {
-                if !paths.contains(&p) {
-                    paths.push(p);
+            if d.device_type == DeviceType::Mouse {
+                if let Some(p) = d.evdev_path {
+                    if !paths.contains(&p) {
+                        paths.push(p);
+                    }
                 }
+            } else {
+                info!(
+                    "Daemon skipping non-mouse Rapoo device '{}' ({}) from exclusive remapper grab",
+                    d.name, d.device_type
+                );
             }
         }
 
@@ -178,20 +221,32 @@ impl Remapper {
     }
 
     /// Process a batch of raw evdev events from a physical device.
-    fn process_events(&mut self, source_path: &PathBuf, events: &[InputEvent]) {
-        let active_profile = self.profile_store.active_profile().clone();
+    fn process_events(&mut self, source_path: &Path, events: &[InputEvent]) {
+        let active_profile = self.profile_store.read().unwrap().active_profile().clone();
 
         for event in events {
             let ev_type = event.event_type();
             let code = event.code();
             let value = event.value();
 
+            // 1. Key & Button events (0x110, 0x111, 0x112, 0x113, 0x114, 0x117, 0x118, etc.)
             if ev_type == EventType::KEY {
-                let hex_code = format!("0x{:03X}", code);
+                let hex_code_lower = format!("0x{:03x}", code);
+                let hex_code_upper = format!("0x{:03X}", code);
+                let dec_code = code.to_string();
                 let is_press = value == 1;
 
-                if let Some(action) = active_profile.get_action(&hex_code) {
-                    debug!("Remapping event on {}: code={hex_code} val={value} -> action={:?}", source_path.display(), action);
+                let matched_action = active_profile
+                    .get_action(&hex_code_lower)
+                    .or_else(|| active_profile.get_action(&hex_code_upper))
+                    .or_else(|| active_profile.get_action(&dec_code));
+
+                if let Some(action) = matched_action {
+                    info!(
+                        "Remapping KEY event on {}: code={hex_code_lower} val={value} -> action={:?}",
+                        source_path.display(),
+                        action
+                    );
                     if is_press {
                         self.execute_action(action, code, event);
                     } else if value == 0 && matches!(action, ButtonAction::PassThrough) {
@@ -201,7 +256,46 @@ impl Remapper {
                 }
             }
 
-            // Passthrough unmapped events (movement, scroll, unmapped buttons)
+            // 2. Relative Wheel events (SCROLL_UP, SCROLL_DOWN, SCROLL_LEFT, SCROLL_RIGHT)
+            if ev_type == EventType::RELATIVE {
+                let wheel_key = match code {
+                    // REL_HWHEEL (0x06) or REL_HWHEEL_HI_RES (0x0c) -> Thumb wheel
+                    0x06 | 0x0c => {
+                        if value < 0 {
+                            Some("SCROLL_LEFT")
+                        } else if value > 0 {
+                            Some("SCROLL_RIGHT")
+                        } else {
+                            None
+                        }
+                    }
+                    // REL_WHEEL (0x08) or REL_WHEEL_HI_RES (0x0b) -> Main wheel
+                    0x08 | 0x0b => {
+                        if value > 0 {
+                            Some("SCROLL_UP")
+                        } else if value < 0 {
+                            Some("SCROLL_DOWN")
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                };
+
+                if let Some(key) = wheel_key {
+                    if let Some(action) = active_profile.get_action(key) {
+                        info!(
+                            "Remapping REL wheel event on {}: key={key} val={value} -> action={:?}",
+                            source_path.display(),
+                            action
+                        );
+                        self.execute_action(action, code, event);
+                        continue;
+                    }
+                }
+            }
+
+            // Passthrough unmapped events (movement, unmapped scroll, unmapped buttons)
             self.passthrough_event(event);
         }
     }
@@ -209,7 +303,10 @@ impl Remapper {
     /// Execute a remapped action for a button press.
     fn execute_action(&mut self, action: &ButtonAction, raw_code: u16, original_ev: &InputEvent) {
         if self.config.dry_run {
-            info!("DRY-RUN: Executing action for raw_code=0x{:03X}: {:?}", raw_code, action);
+            info!(
+                "DRY-RUN: Executing action for raw_code=0x{:03X}: {:?}",
+                raw_code, action
+            );
             return;
         }
 
@@ -307,10 +404,14 @@ impl Remapper {
             ButtonAction::OpenTerminal => {
                 info!("Action: OpenTerminal");
                 std::thread::spawn(|| {
-                    let _ = std::process::Command::new("x-terminal-emulator").spawn()
+                    let _ = std::process::Command::new("x-terminal-emulator")
+                        .spawn()
                         .or_else(|_| std::process::Command::new("gnome-terminal").spawn())
                         .or_else(|_| std::process::Command::new("konsole").spawn())
-                        .or_else(|_| std::process::Command::new("xfce4-terminal").spawn());
+                        .or_else(|_| std::process::Command::new("xfce4-terminal").spawn())
+                        .or_else(|_| std::process::Command::new("alacritty").spawn())
+                        .or_else(|_| std::process::Command::new("kitty").spawn())
+                        .or_else(|_| std::process::Command::new("tilix").spawn());
                 });
             }
             ButtonAction::RunCommand { argv } => {
@@ -349,6 +450,9 @@ impl Remapper {
                     raw_code,
                     original_ev,
                 );
+            }
+            ButtonAction::Macro { macro_id } => {
+                info!("Action: Macro {macro_id}");
             }
         }
     }

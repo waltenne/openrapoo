@@ -64,11 +64,7 @@ Groups:	10 20 104 1000
 #[test]
 fn test_config_path_resolution_never_root_for_normal_users() {
     // 1. Normal user with HOME set
-    let path_normal = ProfileStore::resolve_config_path_internal(
-        None,
-        None,
-        Some("/home/user1"),
-    );
+    let path_normal = ProfileStore::resolve_config_path_internal(None, None, Some("/home/user1"));
     assert_eq!(
         path_normal,
         PathBuf::from("/home/user1/.config/openrapoo/profiles.json")
@@ -88,18 +84,15 @@ fn test_config_path_resolution_never_root_for_normal_users() {
     assert!(!path_xdg.to_string_lossy().contains("/root/"));
 
     // 3. User ran under sudo (SUDO_USER set) — should resolve to SUDO_USER's home
-    let path_sudo = ProfileStore::resolve_config_path_internal(
-        Some("waltenne"),
-        None,
-        Some("/root"),
+    let test_user = std::env::var("USER").unwrap_or_else(|_| "testuser".to_string());
+    let path_sudo =
+        ProfileStore::resolve_config_path_internal(Some(&test_user), None, Some("/root"));
+    let home_dir = dirs::home_dir().unwrap_or_else(|| PathBuf::from(format!("/home/{test_user}")));
+    assert_eq!(
+        path_sudo,
+        home_dir.join(".config/openrapoo/profiles.json")
     );
-    if PathBuf::from("/home/waltenne").exists() {
-        assert_eq!(
-            path_sudo,
-            PathBuf::from("/home/waltenne/.config/openrapoo/profiles.json")
-        );
-        assert!(!path_sudo.to_string_lossy().contains("/root/"));
-    }
+    assert!(!path_sudo.to_string_lossy().contains("/root/"));
 }
 
 #[test]
@@ -110,14 +103,11 @@ fn test_udev_rule_installation_custom_dir() {
     assert!(res.is_ok());
     let installed_file = res.unwrap();
     assert!(installed_file.exists());
-    assert_eq!(
-        installed_file,
-        temp_dir.join("99-openrapoo.rules")
-    );
+    assert_eq!(installed_file, temp_dir.join("99-openrapoo.rules"));
 
     let content = fs::read_to_string(&installed_file).unwrap();
-    assert!(content.contains("ATTRS{idVendor}==\"24ae\""));
-    assert!(content.contains("ATTRS{idProduct}==\"186a\""));
+    assert!(content.contains("ATTRS{idVendor}==\"24[aA][eE]\""));
+    assert!(content.contains("ATTRS{idProduct}==\"18[6bB][aA]\""));
     assert!(content.contains("TAG+=\"uaccess\""));
     assert!(content.contains("GROUP=\"input\""));
 

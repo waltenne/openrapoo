@@ -1,155 +1,53 @@
-//! OpenRapoo GUI & Main Application Entry Point.
+//! OpenRapoo GPUI Graphical User Interface Application Entry Point.
+#![allow(clippy::type_complexity, clippy::too_many_arguments)]
 
-mod app_window;
+mod actions;
+mod app;
+mod assets;
+mod device_model;
 mod i18n;
-#[cfg(feature = "gtk")]
+mod services;
+mod settings;
+mod state;
 mod theme;
-mod views;
-mod widgets;
+mod ui;
 
-use app_window::AppWindowController;
-use clap::Parser;
-use i18n::tr;
-use openrapoo_core::{
-    device::detect_rapoo_devices,
-    permissions::install_udev_rules,
-};
-use std::process::exit;
-use tracing::{info, Level};
+use app::AppView;
+use gpui::{px, AppContext, Bounds, SharedString, Size, TitlebarOptions, WindowBounds, WindowOptions};
+use tracing::info;
 use tracing_subscriber::EnvFilter;
 
-/// OpenRapoo — Linux configuration tool for Rapoo MT760 Pro mouse.
-#[derive(Parser, Debug)]
-#[command(
-    name = "openrapoo-gui",
-    about = "OpenRapoo — Configuration utility for Rapoo MT760 Pro mouse",
-    version,
-    author
-)]
-pub struct Cli {
-    /// Install udev rules into /etc/udev/rules.d/99-openrapoo.rules (requires root)
-    #[arg(long)]
-    pub install_udev: bool,
-
-    /// List connected Rapoo devices and exit
-    #[arg(long)]
-    pub list_devices: bool,
-
-    /// Perform diagnostic check and output technical report
-    #[arg(long)]
-    pub diagnose: bool,
-}
-
 fn main() {
-    let cli = Cli::parse();
-
-    // 1. Handle --install-udev CLI command without initializing GTK
-    if cli.install_udev {
-        match install_udev_rules(None) {
-            Ok(path) => {
-                println!("✓ Regras udev instaladas com sucesso em: {}", path.display());
-                println!("  Executado udevadm control --reload-rules && udevadm trigger.");
-                exit(0);
-            }
-            Err(err) => {
-                eprintln!("{err}");
-                exit(1);
-            }
-        }
-    }
-
-    // 2. Handle --list-devices CLI command without initializing GTK
-    if cli.list_devices {
-        println!("Buscando dispositivos Rapoo conectados...");
-        match detect_rapoo_devices() {
-            Ok(devices) if devices.is_empty() => {
-                println!("Nenhum dispositivo Rapoo encontrado.");
-            }
-            Ok(devices) => {
-                println!("Encontrado(s) {} dispositivo(s) Rapoo:", devices.len());
-                for (i, dev) in devices.iter().enumerate() {
-                    println!(
-                        "  [{}] {} (0x{:04X}:0x{:04X}) - Conexão: {}",
-                        i + 1,
-                        dev.name,
-                        dev.vendor_id,
-                        dev.product_id,
-                        dev.connection
-                    );
-                    if let Some(ref ev) = dev.evdev_path {
-                        println!("      evdev: {}", ev.display());
-                    }
-                }
-            }
-            Err(e) => {
-                eprintln!("Erro ao detectar dispositivos: {e}");
-                exit(1);
-            }
-        }
-        exit(0);
-    }
-
-    // 3. Handle --diagnose CLI command without initializing GTK
-    if cli.diagnose {
-        println!("=== Diagnóstico OpenRapoo ===");
-        println!("Versão: v{}", env!("CARGO_PKG_VERSION"));
-        let status = openrapoo_core::permissions::check_input_group_status();
-        println!("Grupo input: {}", status.display_message_pt());
-        println!("Caminho de configuração: {}", openrapoo_core::config::ProfileStore::default_config_path().display());
-
-        match detect_rapoo_devices() {
-            Ok(devices) => println!("Dispositivos detectados: {}", devices.len()),
-            Err(e) => println!("Erro na detecção: {e}"),
-        }
-        exit(0);
-    }
-
-    // 4. Default: Launch GUI application
     tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
         .with_env_filter(
-            EnvFilter::builder()
-                .with_default_directive(Level::INFO.into())
-                .from_env_lossy(),
+            EnvFilter::try_from_env("OPENRAPOO_LOG").unwrap_or_else(|_| EnvFilter::new("info")),
         )
-        .with_target(false)
         .init();
 
-    info!("OpenRapoo GUI v{}", env!("CARGO_PKG_VERSION"));
-    info!("{}", tr("Inicializando interface gráfica GTK4...", "Initializing GTK4 GUI..."));
+    info!("Starting OpenRapoo GPUI v{}", env!("CARGO_PKG_VERSION"));
 
-    #[cfg(feature = "gtk")]
-    {
-        use gtk4::prelude::*;
-        let app = gtk4::Application::builder()
-            .application_id("io.github.openrapoo.OpenRapoo")
-            .build();
+    let app = gpui_platform::application();
 
-        app.connect_activate(|app| {
-            app_window::build_gtk_ui(app);
-        });
+    app.run(move |cx| {
+        gpui_component::init(cx);
 
-        let empty_args: Vec<String> = vec![std::env::args().next().unwrap_or_default()];
-        app.run_with_args(&empty_args);
-        return;
-    }
+        let bounds = Bounds::centered(None, Size::new(px(1040.0), px(680.0)), cx);
+        let window_options = WindowOptions {
+            titlebar: Some(TitlebarOptions {
+                title: Some(SharedString::from("OpenRapoo")),
+                appears_transparent: false,
+                ..Default::default()
+            }),
+            window_bounds: Some(WindowBounds::Windowed(bounds)),
+            window_min_size: Some(Size::new(px(800.0), px(600.0))),
+            app_id: Some("openrapoo-gui".into()),
+            ..WindowOptions::default()
+        };
 
-    #[cfg(not(feature = "gtk"))]
-    {
-        let controller = AppWindowController::default();
-
-        println!();
-        println!("  ╔══════════════════════════════════════════════════════════════╗");
-        println!("  ║                   OpenRapoo GTK4 Interface                   ║");
-        println!("  ╠══════════════════════════════════════════════════════════════╣");
-        println!("  ║  Status: {}", controller.home_state.status_message);
-        if let Some(ref dev) = controller.home_state.detected_device {
-            println!("  ║  Dispositivo: {} (0x{:04X}:0x{:04X})", dev.name, dev.vendor_id, dev.product_id);
-            println!("  ║  Conexão: {}", dev.connection);
-        }
-        println!("  ║  Perfis carregados: {}", controller.profiles_state.store.profiles.len());
-        println!("  ║  Regras udev: {}", if controller.permissions_status.udev_rule_exists { "Instaladas ✓" } else { "Ausentes ✗" });
-        println!("  ║  Grupo input: {}", controller.permissions_status.input_group_state.display_message_pt());
-        println!("  ╚══════════════════════════════════════════════════════════════╝");
-        println!();
-    }
+        cx.open_window(window_options, |window, cx| {
+            cx.new(|cx| AppView::new(window, cx))
+        })
+        .expect("Failed to open GPUI main window");
+    });
 }

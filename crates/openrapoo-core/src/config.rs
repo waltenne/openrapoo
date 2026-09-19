@@ -7,6 +7,38 @@ use std::path::{Path, PathBuf};
 use tracing::info;
 use uuid::Uuid;
 
+fn default_dpi() -> u32 {
+    1200
+}
+
+fn default_polling_rate() -> u32 {
+    1000
+}
+
+/// Validates whether a DPI value is supported by Rapoo MT760 Pro hardware.
+pub fn validate_dpi(dpi: u32) -> Result<(), OpenRapooError> {
+    const VALID_DPI_LEVELS: &[u32] = &[800, 1000, 1200, 1600, 2400, 3200, 4000];
+    if VALID_DPI_LEVELS.contains(&dpi) || (dpi >= 50 && dpi <= 26000 && dpi % 50 == 0) {
+        Ok(())
+    } else {
+        Err(OpenRapooError::Config(format!(
+            "DPI {dpi} is invalid. Must be between 50 and 26000 in steps of 50."
+        )))
+    }
+}
+
+/// Validates whether a Polling Rate (in Hz) is supported by Rapoo MT760 Pro hardware.
+pub fn validate_polling_rate(rate_hz: u32) -> Result<(), OpenRapooError> {
+    const VALID_POLLING_RATES: &[u32] = &[125, 250, 500, 1000];
+    if VALID_POLLING_RATES.contains(&rate_hz) {
+        Ok(())
+    } else {
+        Err(OpenRapooError::Config(format!(
+            "Polling rate {rate_hz}Hz is unsupported. Supported values: 125, 250, 500, 1000 Hz."
+        )))
+    }
+}
+
 /// A complete configuration profile for the mouse.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Profile {
@@ -16,6 +48,12 @@ pub struct Profile {
     pub name: String,
     /// Button mappings: button code (hex string, e.g. "0x114") → action
     pub mappings: HashMap<String, ButtonAction>,
+    /// Target DPI sensitivity setting (e.g. 800, 1000, 1200, 1600, 2400, 3200, 4000)
+    #[serde(default = "default_dpi")]
+    pub dpi: u32,
+    /// Target USB polling rate setting in Hz (e.g. 125, 250, 500, 1000)
+    #[serde(default = "default_polling_rate")]
+    pub polling_rate: u32,
     /// Whether this is the default (fallback) profile
     pub is_default: bool,
     /// Optional application this profile is associated with (e.g. `"firefox"`, `"gimp"`)
@@ -29,6 +67,8 @@ impl Profile {
             id: Uuid::new_v4(),
             name: name.into(),
             mappings: HashMap::new(),
+            dpi: 1200,
+            polling_rate: 1000,
             is_default: false,
             app_association: None,
         }
@@ -48,6 +88,8 @@ impl Profile {
             id: Uuid::nil(),
             name: "Padrão (Passthrough)".to_string(),
             mappings,
+            dpi: 1200,
+            polling_rate: 1000,
             is_default: true,
             app_association: None,
         }
@@ -92,10 +134,40 @@ pub enum ButtonAction {
     RunCommand { argv: Vec<String> },
     /// Type a predefined text string
     TypeText { text: String },
+    /// Execute a recorded key/button macro sequence
+    Macro { macro_id: Uuid },
     /// Disable this button (absorb events, do nothing)
     Disabled,
     /// Keep the default OS behavior (pass through)
     PassThrough,
+}
+
+/// Event step in a macro sequence.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MacroEvent {
+    pub key: String,
+    pub is_press: bool,
+    pub delay_ms: u64,
+}
+
+/// Macro definition for keystroke automation.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MacroDefinition {
+    pub id: Uuid,
+    pub name: String,
+    pub events: Vec<MacroEvent>,
+    pub repeat_count: u32,
+}
+
+impl MacroDefinition {
+    pub fn new(name: impl Into<String>) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: name.into(),
+            events: Vec::new(),
+            repeat_count: 1,
+        }
+    }
 }
 
 impl ButtonAction {
@@ -179,6 +251,18 @@ impl ProfileStore {
             .unwrap_or_else(|| &self.profiles[0])
     }
 
+    /// Return mutable reference to the currently active profile.
+    pub fn active_profile_mut(&mut self) -> &mut Profile {
+        let active_id = self.active_profile_id;
+        if let Some(pos) = self.profiles.iter().position(|p| p.id == active_id) {
+            &mut self.profiles[pos]
+        } else if let Some(pos) = self.profiles.iter().position(|p| p.is_default) {
+            &mut self.profiles[pos]
+        } else {
+            &mut self.profiles[0]
+        }
+    }
+
     /// Set active profile by UUID.
     pub fn set_active(&mut self, id: Uuid) -> bool {
         if self.profiles.iter().any(|p| p.id == id) {
@@ -197,6 +281,73 @@ impl ProfileStore {
                 .map(|a| a.eq_ignore_ascii_case(app_name))
                 .unwrap_or(false)
         })
+    }
+
+    /// Add a new profile and return its UUID.
+    pub fn add_profile(&mut self, mut profile: Profile) -> Uuid {
+        let id = Uuid::new_v4();
+        profile.id = id;
+        profile.is_default = false;
+        self.profiles.push(profile);
+        id
+    }
+
+    /// Duplicate an existing profile by ID.
+    pub fn duplicate_profile(&mut self, id: Uuid, new_name: &str) -> Option<Profile> {
+        let target = self.profiles.iter().find(|p| p.id == id)?.clone();
+        let mut dup = target;
+        dup.id = Uuid::new_v4();
+        dup.name = new_name.to_string();
+        dup.is_default = false;
+        self.profiles.push(dup.clone());
+        Some(dup)
+    }
+
+    /// Rename a profile by ID.
+    pub fn rename_profile(&mut self, id: Uuid, new_name: &str) -> bool {
+        if let Some(prof) = self.profiles.iter_mut().find(|p| p.id == id) {
+            prof.name = new_name.to_string();
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Delete a non-default profile by ID.
+    pub fn delete_profile(&mut self, id: Uuid) -> bool {
+        if self.profiles.len() <= 1 {
+            return false;
+        }
+        if let Some(idx) = self
+            .profiles
+            .iter()
+            .position(|p| p.id == id && !p.is_default)
+        {
+            self.profiles.remove(idx);
+            if self.active_profile_id == id {
+                self.active_profile_id = self.profiles[0].id;
+            }
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Export a profile to JSON string.
+    pub fn export_profile_json(&self, id: Uuid) -> Option<String> {
+        let prof = self.profiles.iter().find(|p| p.id == id)?;
+        serde_json::to_string_pretty(prof).ok()
+    }
+
+    /// Import a profile from JSON string and add it to store.
+    pub fn import_profile_json(&mut self, json: &str) -> Result<Uuid, OpenRapooError> {
+        let mut prof: Profile = serde_json::from_str(json)
+            .map_err(|e| OpenRapooError::Config(format!("Invalid profile JSON: {e}")))?;
+        prof.id = Uuid::new_v4();
+        prof.is_default = false;
+        let id = prof.id;
+        self.profiles.push(prof);
+        Ok(id)
     }
 
     /// Get default config directory path (`$XDG_CONFIG_HOME/openrapoo/profiles.json` or `~/.config/openrapoo/profiles.json`).
@@ -226,7 +377,10 @@ impl ProfileStore {
             if !user_trim.is_empty() && user_trim != "root" {
                 let user_home = PathBuf::from("/home").join(user_trim);
                 if user_home.exists() {
-                    return user_home.join(".config").join("openrapoo").join("profiles.json");
+                    return user_home
+                        .join(".config")
+                        .join("openrapoo")
+                        .join("profiles.json");
                 }
             }
         }
@@ -235,7 +389,9 @@ impl ProfileStore {
         if let Some(xdg) = xdg_config {
             let xdg_trim = xdg.trim();
             if !xdg_trim.is_empty() {
-                return PathBuf::from(xdg_trim).join("openrapoo").join("profiles.json");
+                return PathBuf::from(xdg_trim)
+                    .join("openrapoo")
+                    .join("profiles.json");
             }
         }
 
@@ -243,7 +399,10 @@ impl ProfileStore {
         if let Some(h) = home {
             let h_trim = h.trim();
             if !h_trim.is_empty() {
-                return PathBuf::from(h_trim).join(".config").join("openrapoo").join("profiles.json");
+                return PathBuf::from(h_trim)
+                    .join(".config")
+                    .join("openrapoo")
+                    .join("profiles.json");
             }
         }
 
@@ -283,5 +442,34 @@ mod tests {
         let json = serde_json::to_string(&store).unwrap();
         let decoded: ProfileStore = serde_json::from_str(&json).unwrap();
         assert_eq!(store.active_profile_id, decoded.active_profile_id);
+    }
+
+    #[test]
+    fn test_profile_management_ops() {
+        let mut store = ProfileStore::default();
+        let original_id = store.active_profile_id;
+
+        // Duplicate
+        let dup = store
+            .duplicate_profile(original_id, "Perfil Cópia")
+            .expect("dup");
+        assert_eq!(dup.name, "Perfil Cópia");
+        assert_eq!(store.profiles.len(), 2);
+
+        // Rename
+        assert!(store.rename_profile(dup.id, "Perfil Renomeado"));
+        assert_eq!(
+            store.profiles.iter().find(|p| p.id == dup.id).unwrap().name,
+            "Perfil Renomeado"
+        );
+
+        // Export & Import
+        let json = store.export_profile_json(dup.id).expect("export");
+        let imported_id = store.import_profile_json(&json).expect("import");
+        assert_eq!(store.profiles.len(), 3);
+
+        // Delete
+        assert!(store.delete_profile(imported_id));
+        assert_eq!(store.profiles.len(), 2);
     }
 }

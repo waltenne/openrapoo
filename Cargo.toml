@@ -47,8 +47,20 @@ hidapi = { version = "2", features = ["linux-static-hidraw"] }
 # System
 nix = { version = "0.29", features = ["ioctl", "fs", "poll"] }
 libc = "0.2"
+futures = "0.3"
 
 # Utilities
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 dirs = "5"
+
+# D-Bus
+zbus = { version = "5", default-features = true }
+zvariant = "5"
+
+# GPUI (matching OpenLogi)
+gpui = { package = "gpui-pre", version = "=0.3.4" }
+gpui_platform = { package = "gpui-pre-platform", version = "=0.3.4", features = ["font-kit", "x11", "wayland"] }
+gpui-component = { git = "https://github.com/longbridge/gpui-kit", tag = "v0.6.1" }
+gpui-base = { git = "https://github.com/longbridge/gpui-kit", tag = "v0.6.1" }
+gpui-kit-assets = { git = "https://github.com/longbridge/gpui-kit", tag = "v0.6.1" }

@@ -22,5 +22,6 @@ tracing-subscriber.workspace = true
 clap.workspace = true
 tokio.workspace = true
 evdev.workspace = true
+futures.workspace = true
 nix.workspace = true
 dirs.workspace = true

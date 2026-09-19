@@ -39,7 +39,11 @@ pub struct HidReportEntry {
 }
 
 /// Run the `hid-report` subcommand.
-pub fn run_hid_report(device_path: Option<PathBuf>, show_hex: bool, format: &OutputFormat) -> Result<()> {
+pub fn run_hid_report(
+    device_path: Option<PathBuf>,
+    show_hex: bool,
+    format: &OutputFormat,
+) -> Result<()> {
     let hidraw_path = resolve_hidraw_path(device_path)?;
 
     println!();
@@ -133,7 +137,10 @@ fn read_hid_descriptor_sysfs(hidraw_path: &PathBuf) -> Result<Vec<u8>> {
         }
     }
 
-    warn!("Não foi possível encontrar o descritor HID em sysfs para {}", hidraw_path.display());
+    warn!(
+        "Não foi possível encontrar o descritor HID em sysfs para {}",
+        hidraw_path.display()
+    );
     Ok(Vec::new())
 }
 
@@ -218,12 +225,12 @@ fn parse_hid_descriptor(hidraw_path: &PathBuf, descriptor: &[u8]) -> HidReportIn
 
         match (item_type, item_tag) {
             // Global items
-            (1, 0) => current_usage_page = value as u16,  // Usage Page
-            (1, 7) => current_report_size = value,         // Report Size
-            (1, 8) => current_report_id = value as u8,     // Report ID
-            (1, 9) => current_report_count = value,         // Report Count
+            (1, 0) => current_usage_page = value as u16, // Usage Page
+            (1, 7) => current_report_size = value,       // Report Size
+            (1, 8) => current_report_id = value as u8,   // Report ID
+            (1, 9) => current_report_count = value,      // Report Count
             // Local items
-            (2, 0) => current_usage = value as u16,         // Usage
+            (2, 0) => current_usage = value as u16, // Usage
             // Main items
             (0, 10) => {
                 // Collection
@@ -301,7 +308,12 @@ fn print_human_hid_info(info: &HidReportInfo) {
 
     println!("  Input reports: {}", info.input_reports.len());
     for r in &info.input_reports {
-        println!("    ID=0x{:02X}  {} bits ({} bytes)", r.report_id, r.size_bits, r.size_bits / 8);
+        println!(
+            "    ID=0x{:02X}  {} bits ({} bytes)",
+            r.report_id,
+            r.size_bits,
+            r.size_bits / 8
+        );
     }
 
     if !info.output_reports.is_empty() {

@@ -143,9 +143,11 @@ fn collect_system_info() -> String {
     let distro = std::fs::read_to_string("/etc/os-release")
         .ok()
         .and_then(|s| {
-            s.lines()
-                .find(|l| l.starts_with("PRETTY_NAME="))
-                .map(|l| l.trim_start_matches("PRETTY_NAME=").trim_matches('"').to_string())
+            s.lines().find(|l| l.starts_with("PRETTY_NAME=")).map(|l| {
+                l.trim_start_matches("PRETTY_NAME=")
+                    .trim_matches('"')
+                    .to_string()
+            })
         })
         .unwrap_or_else(|| "unknown".to_string());
     info.push_str(&format!("| Distribution | `{}` |\n", distro));
@@ -155,14 +157,17 @@ fn collect_system_info() -> String {
     info.push_str(&format!("| Architecture | `{}` |\n", arch.trim()));
 
     // OpenRapoo version
-    info.push_str(&format!("| openrapoo-diag | `{}` |\n", env!("CARGO_PKG_VERSION")));
+    info.push_str(&format!(
+        "| openrapoo-diag | `{}` |\n",
+        env!("CARGO_PKG_VERSION")
+    ));
 
     format!("| Key | Value |\n|---|---|\n{info}\n")
 }
 
 fn format_device_section(device: &RapooDevice) -> String {
     let mut s = String::new();
-    s.push_str(&format!("| Field | Value |\n|---|---|\n"));
+    s.push_str("| Field | Value |\n|---|---|\n");
     s.push_str(&format!("| Name | `{}` |\n", device.name));
     s.push_str(&format!("| Model | `{}` |\n", device.model));
     s.push_str(&format!("| VID | `0x{:04X}` |\n", device.vendor_id));
@@ -225,8 +230,7 @@ fn collect_proc_input_rapoo() -> String {
 }
 
 fn collect_dmesg_rapoo() -> String {
-    let output = std::process::Command::new("dmesg")
-        .output();
+    let output = std::process::Command::new("dmesg").output();
 
     match output {
         Ok(out) => {
@@ -235,7 +239,9 @@ fn collect_dmesg_rapoo() -> String {
                 .lines()
                 .filter(|l| {
                     let lower = l.to_lowercase();
-                    lower.contains("24ae") || lower.contains("rapoo") || lower.contains("hid-generic")
+                    lower.contains("24ae")
+                        || lower.contains("rapoo")
+                        || lower.contains("hid-generic")
                 })
                 .take(50) // limit to 50 lines
                 .collect();
@@ -271,7 +277,8 @@ fn collect_hid_sysfs() -> String {
 
     if lines.is_empty() {
         "(No Rapoo HID devices found in /sys/bus/hid/devices)\n\
-        This is expected if the mouse is not connected.".to_string()
+        This is expected if the mouse is not connected."
+            .to_string()
     } else {
         lines.join("\n")
     }

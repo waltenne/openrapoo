@@ -10,10 +10,7 @@
 
 use anyhow::{bail, Context, Result};
 use evdev::{Device, EventType};
-use openrapoo_core::{
-    device::detect_rapoo_devices,
-    event::ButtonCode,
-};
+use openrapoo_core::{device::detect_rapoo_devices, event::ButtonCode};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use tracing::info;
@@ -40,16 +37,24 @@ pub async fn run_identify_buttons(device_path: Option<PathBuf>) -> Result<()> {
     println!("  Dispositivo: {device_name}");
     println!("  Nó evdev:    {}", path.display());
     println!();
-    println!("  {:<35}  {:<12}  {:<12}  {}", "Entrada identificada", "Tipo", "Código hex", "Valor");
-    println!("  {:<35}  {:<12}  {:<12}  {}", "─".repeat(35), "─".repeat(12), "─".repeat(12), "─".repeat(6));
+    println!(
+        "  {:<35}  {:<12}  {:<12}  {}",
+        "Entrada identificada", "Tipo", "Código hex", "Valor"
+    );
+    println!(
+        "  {:<35}  {:<12}  {:<12}  {}",
+        "─".repeat(35),
+        "─".repeat(12),
+        "─".repeat(12),
+        "─".repeat(6)
+    );
 
     // Track seen events: key = "TYPE:CODE", value = description
     let mut identified: HashMap<String, String> = HashMap::new();
 
     loop {
-        let events = tokio::task::block_in_place(|| {
-            device.fetch_events().map(|e| e.collect::<Vec<_>>())
-        });
+        let events =
+            tokio::task::block_in_place(|| device.fetch_events().map(|e| e.collect::<Vec<_>>()));
 
         let events = match events {
             Ok(e) => e,
@@ -98,7 +103,9 @@ pub async fn run_identify_buttons(device_path: Option<PathBuf>) -> Result<()> {
                     let is_new = !identified.contains_key(&map_key);
                     // For scroll, insert with direction
                     let dir = if value > 0 { "↓/→" } else { "↑/←" };
-                    identified.entry(map_key).or_insert_with(|| axis_name.to_string());
+                    identified
+                        .entry(map_key)
+                        .or_insert_with(|| axis_name.to_string());
 
                     let new_marker = if is_new { " ← NOVO" } else { "" };
                     println!(
@@ -119,10 +126,12 @@ pub async fn run_identify_buttons(device_path: Option<PathBuf>) -> Result<()> {
     println!();
 
     // Separate buttons from axes for summary
-    let buttons: Vec<_> = identified.iter()
+    let buttons: Vec<_> = identified
+        .iter()
         .filter(|(k, _)| k.starts_with("KEY:"))
         .collect();
-    let axes: Vec<_> = identified.iter()
+    let axes: Vec<_> = identified
+        .iter()
         .filter(|(k, _)| k.starts_with("REL:"))
         .collect();
 
@@ -131,7 +140,14 @@ pub async fn run_identify_buttons(device_path: Option<PathBuf>) -> Result<()> {
         for (key, name) in &buttons {
             let code: u16 = key.strip_prefix("KEY:").unwrap_or("0").parse().unwrap_or(0);
             let remappable = !matches!(ButtonCode::from_raw(code), ButtonCode::Other(c) if c == 0);
-            println!("    0x{code:04X}  →  {name}  {}", if remappable { "(remapeável via software)" } else { "" });
+            println!(
+                "    0x{code:04X}  →  {name}  {}",
+                if remappable {
+                    "(remapeável via software)"
+                } else {
+                    ""
+                }
+            );
         }
         println!();
     }
@@ -146,7 +162,8 @@ pub async fn run_identify_buttons(device_path: Option<PathBuf>) -> Result<()> {
     }
 
     // Warn about unknown button codes
-    let unknown_btns: Vec<_> = buttons.iter()
+    let unknown_btns: Vec<_> = buttons
+        .iter()
         .filter(|(key, _)| {
             let code: u16 = key.strip_prefix("KEY:").unwrap_or("0").parse().unwrap_or(0);
             matches!(ButtonCode::from_raw(code), ButtonCode::Other(_))

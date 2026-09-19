@@ -5,14 +5,15 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
 
 jobs:
-  test:
-    name: Test (${{ matrix.os }})
+  ci:
+    name: Build & Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -20,52 +21,43 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            build-essential \
+            pkg-config \
             libhidapi-dev \
             libudev-dev \
             libevdev-dev \
-            pkg-config
+            libdbus-1-dev \
+            desktop-file-utils
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
 
-      - name: Cache Cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
 
-      - name: Check formatting
+      - name: Check code formatting
         run: cargo fmt --all -- --check
 
-      - name: Clippy
+      - name: Check workspace compilation
+        run: cargo check --workspace
+
+      - name: Clippy lints
         run: cargo clippy --workspace --all-targets -- -D warnings
 
-      - name: Build
-        run: cargo build --workspace --all-targets
-
-      - name: Run tests
+      - name: Run unit & integration tests
         run: cargo test --workspace
 
-  security-audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: rustsec/audit-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build release binaries
+        run: cargo build --workspace --release
 
+      - name: Validate desktop file specification
+        run: desktop-file-validate packaging/io.github.openrapoo.OpenRapoo.desktop

@@ -1,72 +1,66 @@
-# Contribuindo com o OpenRapoo
+# Contributing to OpenRapoo
 
-Obrigado pelo interesse em contribuir! Leia este guia antes de abrir pull requests.
+Thank you for your interest in contributing to OpenRapoo! We welcome bug reports, hardware telemetry logs, documentation improvements, and code contributions.
 
-## Código de Conduta
+---
 
-Este projeto segue o [Contributor Covenant v2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
+## 🛠️ Development Setup
 
-## Como contribuir
+### Prerequisites
 
-### Reportar bugs
-
-Abra uma issue com:
-- Versão do OpenRapoo
-- Versão do kernel Linux (`uname -r`)
-- Distro e versão
-- Saída do `openrapoo-diag list-devices`
-- Saída do `openrapoo-diag generate-report`
-- Passos para reproduzir
-
-### Contribuir com dados de hardware
-
-Se você tem um Rapoo MT760 Pro, a contribuição mais valiosa agora é rodar o diagnóstico e compartilhar os dados.
-
-Veja [`docs/log-collection.md`](docs/log-collection.md).
-
-### Pull Requests
-
-1. Fork o repositório
-2. Crie uma branch: `git checkout -b feature/minha-funcionalidade`
-3. Siga o estilo de código: `cargo fmt` e `cargo clippy`
-4. Adicione testes quando aplicável
-5. Abra o PR descrevendo o que foi feito
-
-### Regras de segurança para contribuidores
-
-- **Nunca** adicione código que escreva dados no mouse sem confirmação explícita do usuário
-- **Nunca** adicione comandos HID não documentados
-- Toda operação de escrita deve ter modo de rollback
-- Valide todos os inputs para evitar shell injection
-
-## Setup de desenvolvimento
+Ensure you have Rust (1.75+) installed via `rustup` and the required C libraries:
 
 ```bash
-# Dependências
-sudo apt install libhidapi-dev libudev-dev build-essential
+# Ubuntu / Debian
+sudo apt install build-essential pkg-config libhidapi-dev libudev-dev libevdev-dev libdbus-1-dev desktop-file-utils
+```
 
-# Compilar
-cargo build
+### Checking & Building Workspace
 
-# Testes
+```bash
+# Format check
+cargo fmt --all -- --check
+
+# Workspace check
+cargo check --workspace
+
+# Clippy lints
+cargo clippy --workspace --all-targets -- -D warnings
+
+# Run tests
 cargo test --workspace
 
-# Linting
-cargo clippy --workspace -- -D warnings
-
-# Formatação
-cargo fmt --all
+# Build release
+cargo build --release --workspace
 ```
 
-## Estrutura do repositório
+---
 
-```
-crates/
-├── openrapoo-core/    # Tipos compartilhados, detecção de dispositivo
-├── openrapoo-diag/    # CLI de diagnóstico
-└── openrapoo-daemon/  # Daemon de remapeamento (Fase 3)
-docs/                  # Documentação técnica
-udev/                  # Regras udev
-tests/                 # Testes de integração
-```
+## 🐞 Submitting Bug & Hardware Telemetry Reports
 
+If you own a Rapoo MT760 Pro or other Rapoo peripheral, you can contribute hardware logs without revealing personal information:
+
+1. Run the diagnostic tool:
+   ```bash
+   cargo run --bin openrapoo-diag -- generate-report
+   ```
+2. The report is saved to `~/.local/share/openrapoo/report-YYYY-MM-DD.md`.
+3. Open a GitHub Issue attaching the generated diagnostic report.
+
+---
+
+## 🤖 AI Assistance Policy
+
+OpenRapoo welcomes pull requests written with the assistance of AI tools. However, please ensure that:
+1. All PRs are manually tested on Linux hardware or with unit tests.
+2. Code follows workspace Rust idioms and passes `cargo clippy -- -D warnings`.
+3. No hallucinated features or non-existent hardware protocols are presented as supported.
+
+---
+
+## 📜 Pull Request Process
+
+1. Fork the repository and create a feature branch (`git checkout -b feature/my-feature`).
+2. Commit your changes with clear messages.
+3. Verify that `cargo fmt`, `cargo check`, `cargo clippy`, and `cargo test` pass cleanly.
+4. Push your branch and open a Pull Request against `main`.
