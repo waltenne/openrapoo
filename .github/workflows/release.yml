@@ -5,6 +5,22 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      semver_bump:
+        description: 'Semantic Version Bump (auto, patch, minor, major, custom)'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+          - custom
+      custom_version:
+        description: 'Custom Version (if semver_bump is custom, e.g. 0.2.0)'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -21,31 +37,63 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Extract Tag & Workspace Version
+      - name: Calculate Dynamic Semantic Version
         id: version_check
         run: |
-          TAG_NAME="${GITHUB_REF_NAME}"
-          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "main" ]; then
-            TAG_NAME="v$(grep -m1 '^version = ' Cargo.toml | cut -d '"' -f2)"
+          CARGO_VER=$(grep -m1 '^version = ' Cargo.toml | cut -d '"' -f2)
+          BUMP_TYPE="${{ github.event.inputs.semver_bump }}"
+          CUSTOM_VER="${{ github.event.inputs.custom_version }}"
+          
+          # If triggered by tag, use tag version
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TARGET_VER="${GITHUB_REF_NAME#v}"
+          elif [ -n "$CUSTOM_VER" ] && [ "$BUMP_TYPE" = "custom" ]; then
+            TARGET_VER="${CUSTOM_VER#v}"
+          else
+            # Get latest tag or default to v0.1.0
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v${CARGO_VER}")
+            TAG_VER="${LATEST_TAG#v}"
+            
+            IFS='.' read -r MAJOR MINOR PATCH <<< "${TAG_VER:-0.1.0}"
+            PATCH=$(echo "$PATCH" | cut -d'-' -f1 | cut -d'+' -f1)
+            MAJOR=${MAJOR:-0}
+            MINOR=${MINOR:-1}
+            PATCH=${PATCH:-0}
+            
+            case "${BUMP_TYPE:-auto}" in
+              major)
+                TARGET_VER="$((MAJOR + 1)).0.0"
+                ;;
+              minor)
+                TARGET_VER="${MAJOR}.$((MINOR + 1)).0"
+                ;;
+              patch)
+                TARGET_VER="${MAJOR}.${MINOR}.$((PATCH + 1))"
+                ;;
+              auto|*)
+                if git rev-parse "v${TAG_VER}" >/dev/null 2>&1 && [ "${GITHUB_REF_NAME}" = "main" ] && [ "${BUMP_TYPE}" = "patch" ]; then
+                  TARGET_VER="${MAJOR}.${MINOR}.$((PATCH + 1))"
+                else
+                  TARGET_VER="${TAG_VER}"
+                fi
+                ;;
+            esac
           fi
           
-          # Remove leading 'v'
-          TAG_VERSION="${TAG_NAME#v}"
-          CARGO_VERSION=$(grep -m1 '^version = ' Cargo.toml | cut -d '"' -f2)
+          echo "Calculated Dynamic SemVer: ${TARGET_VER}"
+          echo "version=${TARGET_VER}" >> $GITHUB_OUTPUT
           
-          echo "Tag Version: ${TAG_VERSION}"
-          echo "Cargo Version: ${CARGO_VERSION}"
-          
-          if [ "${TAG_VERSION}" != "${CARGO_VERSION}" ]; then
-            echo "::error::Tag version (${TAG_VERSION}) does not match Cargo.toml version (${CARGO_VERSION})!"
-            exit 1
+          # Sync Cargo.toml if needed
+          if [ "${TARGET_VER}" != "${CARGO_VER}" ]; then
+            echo "Updating workspace Cargo.toml from ${CARGO_VER} to ${TARGET_VER}..."
+            sed -i "s/^version = \"${CARGO_VER}\"/version = \"${TARGET_VER}\"/" Cargo.toml
           fi
-          
-          echo "version=${TAG_VERSION}" >> $GITHUB_OUTPUT
           
           IS_PRERELEASE="false"
-          if echo "${TAG_NAME}" | grep -qE "(alpha|beta|rc)"; then
+          if echo "${TARGET_VER}" | grep -qE "(alpha|beta|rc)"; then
             IS_PRERELEASE="true"
           fi
           echo "prerelease=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
@@ -101,6 +149,8 @@ jobs:
         run: cargo test --workspace
 
       - name: Execute master packaging suite
+        env:
+          VERSION: ${{ steps.version_check.outputs.version }}
         run: |
           chmod +x packaging/build-all.sh packaging/deb/build-deb.sh packaging/appimage/build-appimage.sh
           ./packaging/build-all.sh
@@ -155,4 +205,3 @@ jobs:
           body_path: dist/release-notes.md
           prerelease: ${{ steps.version_check.outputs.prerelease == 'true' }}
           draft: false
-

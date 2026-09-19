@@ -7,7 +7,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD_DIR="${PROJECT_ROOT}/target/appdir"
 DIST_DIR="${PROJECT_ROOT}/dist"
 
-VERSION=$(grep -m1 '^version = ' "$PROJECT_ROOT/Cargo.toml" | cut -d '"' -f2)
+VERSION="${VERSION:-$(grep -m1 '^version = ' "$PROJECT_ROOT/Cargo.toml" | cut -d '"' -f2)}"
 if [ -z "$VERSION" ]; then
     VERSION="0.1.0"
 fi
