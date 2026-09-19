@@ -50,6 +50,19 @@ jobs:
           fi
           echo "prerelease=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
 
+      - name: Ensure Git Tag Exists
+        run: |
+          TARGET_TAG="v${{ steps.version_check.outputs.version }}"
+          if ! git ls-remote --tags origin | grep -q "refs/tags/${TARGET_TAG}$"; then
+            echo "Tag ${TARGET_TAG} not found on remote origin. Creating tag automatically..."
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "${TARGET_TAG}" -m "Release ${TARGET_TAG}"
+            git push origin "${TARGET_TAG}"
+          else
+            echo "Tag ${TARGET_TAG} already exists on remote origin."
+          fi
+
       - name: Install system dependencies & appimagetool
         run: |
           sudo apt-get update
