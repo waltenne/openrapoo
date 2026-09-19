@@ -3,6 +3,7 @@ dist/
 *.swp
 *.swo
 .DS_Store
+scratch/
 .vscode/
 .idea/
 *.log

@@ -9,6 +9,10 @@
   <a href="README.pt-BR.md"><strong>Português do Brasil</strong></a>
 </p>
 
+<p align="center">
+  <img src="assets/screenshots/openrapoo-gui.png" alt="Interface GPUI do OpenRapoo" width="800" />
+</p>
+
 ---
 
 O OpenRapoo é uma suíte open source para Linux desenvolvida em **Rust** com **GPUI** para oferecer suporte a recursos, personalização de DPI, taxa de amostragem (polling rate), remapeamento de botões e telemetria de bateria para mouses e teclados Rapoo—especialmente o **Rapoo MT760 Pro**.
